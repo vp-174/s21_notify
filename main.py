@@ -181,7 +181,7 @@ class CustomDialog(QDialog):
 
         layout = QGridLayout()
         bg = QWidget()
-        bg.setStyleSheet("background-image: url('data/msg_bg2.png') no-repeat center center fixed; padding: 0px")
+        bg.setStyleSheet("background-image: url('data/msg_bg.png') no-repeat center center fixed; padding: 0px")
         bg.setContentsMargins(0, 0, 0, 0)
 
         # установка фона
@@ -273,8 +273,6 @@ def timeWork(access_token):
         mute += 1
         print(mute)
         if mute == 1:
-            filename1 = 'data/01.wav'
-            winsound.PlaySound(filename1, winsound.SND_FILENAME)
             tray_icon.showMessage("Включен режим тишины", "Уведомления о событиях\n отключены до 9:00 утра", QSystemTrayIcon.Information, 10000)
             # show_notification("Включен режим тишины".upper(), f"Уведомления о событиях\n отключены до 9:00 утра")
         elif mute > 1:
@@ -320,6 +318,9 @@ if __name__ == "__main__":
             filename1 = 'data/01.wav'
             winsound.PlaySound(filename1, winsound.SND_FILENAME)
             access_token = read_token_from_file()
+
+            # запустится при первом запуске
+            timeWork(access_token)
 
             timer = QTimer()
             timer.timeout.connect(lambda: timeWork(access_token))

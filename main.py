@@ -15,6 +15,7 @@ import configparser
 import webbrowser
 
 version  = "build/0001"
+mute = 0
 
 def show_login_window():
     # Окно для ввода логина и пароля
@@ -60,6 +61,7 @@ def get_access_token(username, password):
     }
     response = requests.post(url, data=payload)
     if response.status_code == 200:
+        time.sleep(1)
         tray_icon.showMessage("Уведомление", "Токен получен", QSystemTrayIcon.Information, 5000)
         return response.json().get("access_token")
     else:
@@ -81,6 +83,22 @@ def read_token_from_file():
     else:
         return None
 
+# Период
+def save_period_to_file():
+    pass
+
+def read_period_from_file():
+    pass
+
+# GMT
+def save_gmt_to_file():
+    pass
+
+def read_gmt_from_file():
+    pass
+
+
+
 def check_auth():
     # Проверка авторизации и уведомление
     access_token = read_token_from_file()
@@ -99,8 +117,11 @@ def check_notify(access_token):
     # Получаем текущую дату
     now = datetime.now()
 
-    # Устанавливаем дату 'from' как текущую дату минус один день
-    from_date = now - timedelta(days=1)
+    # # Устанавливаем дату 'from' как текущую дату минус один день
+    # from_date = now - timedelta(days=1)
+
+    # Вычитаем один час
+    from_date = now - timedelta(hours=1)
 
     # Устанавливаем дату 'to' как текущую дату плюс три месяца
     to_date = now + relativedelta(months=3)
@@ -120,27 +141,30 @@ def check_notify(access_token):
     if response.status_code == 200:
         events = response.json().get("events")
         # print(events)
-        for event in events:
-            name = event.get('name')
-            desc = event.get('description')
-            loc = event.get('location')
+        if events:
+            for event in events:
+                name = event.get('name')
+                desc = event.get('description')
+                loc = event.get('location')
 
-            date_start = event.get('startDateTime')
-            date_time_obj1 = datetime.strptime(date_start, '%Y-%m-%dT%H:%M:%S')
-            # добавляем 5 часов
-            date_time_obj1 += timedelta(hours=5)
-            # преобразуем обратно в строку
-            date_start = date_time_obj1.strftime('%d/%m/%Y %H:%M')
+                date_start = event.get('startDateTime')
+                date_time_obj1 = datetime.strptime(date_start, '%Y-%m-%dT%H:%M:%S')
+                # добавляем 5 часов
+                date_time_obj1 += timedelta(hours=5)
+                # преобразуем обратно в строку
+                date_start = date_time_obj1.strftime('%d/%m/%Y %H:%M')
 
-            date_end = event.get('endDateTime')
-            date_time_obj2 = datetime.strptime(date_end, '%Y-%m-%dT%H:%M:%S')
-            # добавляем 5 часов
-            date_time_obj2 += timedelta(hours=5)
-            # преобразуем обратно в строку
-            date_end = date_time_obj2.strftime('%H:%M')
+                date_end = event.get('endDateTime')
+                date_time_obj2 = datetime.strptime(date_end, '%Y-%m-%dT%H:%M:%S')
+                # добавляем 5 часов
+                date_time_obj2 += timedelta(hours=5)
+                # преобразуем обратно в строку
+                date_end = date_time_obj2.strftime('%H:%M')
 
-            show_notification("Доступны новые события".upper(), f"{name}\n\n{loc}\n{date_start} - {date_end}")
-            time.sleep(5)
+                show_notification("Доступны новые события".upper(), f"{name}\n\n{loc}\n{date_start} - {date_end}")
+                time.sleep(5)
+        else:
+            print("events empty")
 
         return True
     else:
@@ -232,10 +256,29 @@ def settings_action():
     # Выход из приложения
     print("Настройки приложения")
 
-class MenuThread(QThread):
-    def run(self):
-        tray_icon.setContextMenu(menu)
-        tray_icon.show()
+# class MenuThread(QThread):
+#     def run(self):
+#         tray_icon.setContextMenu(menu)
+#         tray_icon.show()
+
+def timeWork(access_token):
+    global mute
+    now = datetime.now()
+    now += timedelta(hours=0)
+    nowstr = now.strftime('%H:%M:%S')
+    if nowstr > '09:00:00' and nowstr < '21:00:00':
+        mute = 0
+        check_notify(access_token)
+    else:
+        mute += 1
+        print(mute)
+        if mute == 1:
+            filename1 = 'data/01.wav'
+            winsound.PlaySound(filename1, winsound.SND_FILENAME)
+            tray_icon.showMessage("Включен режим тишины", "Уведомления о событиях\n отключены до 9:00 утра", QSystemTrayIcon.Information, 10000)
+            # show_notification("Включен режим тишины".upper(), f"Уведомления о событиях\n отключены до 9:00 утра")
+        elif mute > 1:
+            print(f"[ MUTE MODE ]")
 
 
 if __name__ == "__main__":
@@ -258,11 +301,11 @@ if __name__ == "__main__":
     menu.addAction(settings_action)
     menu.addAction(exit_action)
 
-    # tray_icon.setContextMenu(menu)
-    # tray_icon.show()
+    tray_icon.setContextMenu(menu)
+    tray_icon.show()
 
-    menu_thread = MenuThread()
-    menu_thread.start()
+    # menu_thread = MenuThread()
+    # menu_thread.start()
 
     while not read_token_from_file():
         show_login_window()
@@ -272,13 +315,16 @@ if __name__ == "__main__":
     else:
         if check_auth():
             time.sleep(10)
+
             tray_icon.showMessage("Уведомление", "Успешная авторизация", QSystemTrayIcon.Information, 5000)
             filename1 = 'data/01.wav'
             winsound.PlaySound(filename1, winsound.SND_FILENAME)
             access_token = read_token_from_file()
+
             timer = QTimer()
-            timer.timeout.connect(lambda: check_notify(access_token))
-            timer.start(1*60000)  # Проверка событий каждые 30 минут
+            timer.timeout.connect(lambda: timeWork(access_token))
+            timer.start(60 * 60000) # проверка каждый час
+
         else:
             tray_icon.showMessage("Уведомление", "Ошибка авторизации", QSystemTrayIcon.Information, 5000)
 

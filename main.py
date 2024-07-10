@@ -20,10 +20,13 @@ def show_login_window():
     # Окно для ввода логина и пароля
     login_dialog = QDialog()
     login_dialog.setWindowTitle("Авторизация")
+    login_dialog.setWindowFlags(Qt.FramelessWindowHint)
     layout = QVBoxLayout()
     username_input = QLineEdit()
     password_input = QLineEdit()
+    password_input.setEchoMode(QLineEdit.Password)
     login_button = QPushButton("Авторизация")
+    exit_button = QPushButton("Выйти")
 
     def authenticate():
         username = username_input.text()
@@ -34,12 +37,14 @@ def show_login_window():
             login_dialog.close()
 
     login_button.clicked.connect(authenticate)
+    exit_button.clicked.connect(lambda: sys.exit())
 
     layout.addWidget(QLabel("Логин:"))
     layout.addWidget(username_input)
     layout.addWidget(QLabel("Пароль:"))
     layout.addWidget(password_input)
     layout.addWidget(login_button)
+    layout.addWidget(exit_button)
 
     login_dialog.setLayout(layout)
     login_dialog.exec()
@@ -115,7 +120,6 @@ def check_notify(access_token):
     if response.status_code == 200:
         events = response.json().get("events")
         # print(events)
-
         for event in events:
             name = event.get('name')
             desc = event.get('description')
@@ -204,6 +208,7 @@ class CustomDialog(QDialog):
         cancel_button.setStyleSheet(msg_style)
 
         ok_button.clicked.connect(lambda: webbrowser.open(url))
+        ok_button.clicked.connect(self.close)
         cancel_button.clicked.connect(lambda: self.close())
 
         layout.addWidget(ok_button,2,0, alignment=Qt.AlignmentFlag.AlignHCenter)
@@ -211,29 +216,32 @@ class CustomDialog(QDialog):
 
         self.setLayout(layout)
 
-
 def show_notification(message, message2):
     filename2 = 'data/02.wav'
     winsound.PlaySound(filename2, winsound.SND_FILENAME)
     url = 'https://edu.21-school.ru'
-    # image_path = "data/msg_bg.png"  # Path to your image
 
     dialog = CustomDialog(message, message2, url)
     dialog.setFixedSize(342, 235)  # Set window size
     dialog.exec()
 
 def exit_action():
-    # Выход из приложения
-    print("Выход из приложения")
-    app.quit()
+    sys.exit()
 
 def settings_action():
     # Выход из приложения
     print("Настройки приложения")
 
+class MenuThread(QThread):
+    def run(self):
+        tray_icon.setContextMenu(menu)
+        tray_icon.show()
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+    app_icon = QIcon('data/icon.ico')
+    app.setWindowIcon(app_icon)
     app.setQuitOnLastWindowClosed(False)
 
     tray_icon = QSystemTrayIcon(QIcon("data/icon.png"), app)
@@ -250,8 +258,11 @@ if __name__ == "__main__":
     menu.addAction(settings_action)
     menu.addAction(exit_action)
 
-    tray_icon.setContextMenu(menu)
-    tray_icon.show()
+    # tray_icon.setContextMenu(menu)
+    # tray_icon.show()
+
+    menu_thread = MenuThread()
+    menu_thread.start()
 
     while not read_token_from_file():
         show_login_window()
@@ -260,14 +271,14 @@ if __name__ == "__main__":
         show_login_window()
     else:
         if check_auth():
-            time.sleep(7)
+            time.sleep(10)
             tray_icon.showMessage("Уведомление", "Успешная авторизация", QSystemTrayIcon.Information, 5000)
             filename1 = 'data/01.wav'
             winsound.PlaySound(filename1, winsound.SND_FILENAME)
             access_token = read_token_from_file()
             timer = QTimer()
             timer.timeout.connect(lambda: check_notify(access_token))
-            timer.start(30*60000)  # Проверка событий каждые 30 минут
+            timer.start(1*60000)  # Проверка событий каждые 30 минут
         else:
             tray_icon.showMessage("Уведомление", "Ошибка авторизации", QSystemTrayIcon.Information, 5000)
 

@@ -6,6 +6,7 @@ from PySide6.QtCore import *
 from PySide6.QtGui import *
 from PySide6.QtWidgets import *
 import winsound
+import configparser
 
 access_token = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJ5V29landCTmxROWtQVEpFZnFpVzRrc181Mk1KTWkwUHl2RHNKNlgzdlFZIn0.eyJleHAiOjE3MjA1NTc5ODQsImlhdCI6MTcyMDUyMTk4NCwianRpIjoiOTZlZDU3MmItYWZiMy00YzczLWI3ZTgtMjY1YTM4ZDRhNDFhIiwiaXNzIjoiaHR0cHM6Ly9hdXRoLnNiZXJjbGFzcy5ydS9hdXRoL3JlYWxtcy9FZHVQb3dlcktleWNsb2FrIiwiYXVkIjoiYWNjb3VudCIsInN1YiI6IjIzYzBlN2MxLWY0ZTQtNDNlNC05ZTRjLTFiOGI3OGE3ODZlMCIsInR5cCI6IkJlYXJlciIsImF6cCI6InMyMS1vcGVuLWFwaSIsInNlc3Npb25fc3RhdGUiOiJlYjgwN2EyOC0wMjZhLTQwMTktOGRhMS0wMjgxMmEzYmY4M2QiLCJhY3IiOiIxIiwiYWxsb3dlZC1vcmlnaW5zIjpbImh0dHBzOi8vZWR1LjIxLXNjaG9vbC5ydSJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiZGVmYXVsdC1yb2xlcy1lZHVwb3dlcmtleWNsb2FrIiwib2ZmbGluZV9hY2Nlc3MiLCJ1bWFfYXV0aG9yaXphdGlvbiJdfSwicmVzb3VyY2VfYWNjZXNzIjp7ImFjY291bnQiOnsicm9sZXMiOlsibWFuYWdlLWFjY291bnQiLCJtYW5hZ2UtYWNjb3VudC1saW5rcyIsInZpZXctcHJvZmlsZSJdfX0sInNjb3BlIjoicHJvZmlsZSBlbWFpbCIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJ1c2VyX2lkIjoiMDJiODk3NWQtNGE3OC00ZWE0LWExZDktNjg3Mzk4NWU3MmI4IiwibmFtZSI6Ikdlb2ZmcmV5IEFubmljZSIsImF1dGhfdHlwZV9jb2RlIjoiZGVmYXVsdCIsInByZWZlcnJlZF91c2VybmFtZSI6Imdlb2ZmcmVhQHN0dWRlbnQuMjEtc2Nob29sLnJ1IiwiZ2l2ZW5fbmFtZSI6Ikdlb2ZmcmV5IiwiZmFtaWx5X25hbWUiOiJBbm5pY2UiLCJlbWFpbCI6Imdlb2ZmcmVhQHN0dWRlbnQuMjEtc2Nob29sLnJ1In0.Cg3UvMDLeUGO1pGkJ71GQU2kEmAZt2Rtklm7gPoWYvdB3R-CncJPeAbAwcdH3p7jZ2Zn7iWkJKiKXP8VKMDwIy9wYJkLcdTT4n_X2TyFj3PIRecvsLVLKnpkxYb8qHaQGUHHs4nj_01Vq5Go39S23oZfVk5swewkMd2lQk-5Y7hSf7CL98S4QFy1wln_p3KdrsbG5yd8SkX_DXXkqAzgmiG-4eGjot0_mnluoQJ1Zm9Wl8NoQn6tArutUugQHlprMPOLyC4ahWRdUvLauL3tCArN3uBzh6kZrJABLVC0GgDITsFTLJokyDpGG4-9PMUVbE3CDdTlWpC4ZA4iyeeanA"
 # def get_access_token(username, password):
@@ -22,12 +23,37 @@ access_token = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJ5V29landCTmxR
 #     else:
 #         return None
 
+def save_token_to_file(token):
+    config = configparser.ConfigParser()
+    config['AUTH'] = {'token': token}
+
+    with open('data.ini', 'w') as configfile:
+        config.write(configfile)
+
+def read_token_from_file():
+    config = configparser.ConfigParser()
+    config.read('data.ini')
+
+    if 'TOKEN' in config:
+        return config['AUTH'].get('token')
+    else:
+        return None
+
+# Проверяем наличие сохраненного токена
+saved_token = read_token_from_file()
+if saved_token:
+    access_token = saved_token
+
 def check_auth_and_notify():
     try:
         if access_token and check_auth(access_token):
             filename = 'data/01.wav'
             winsound.PlaySound(filename, winsound.SND_FILENAME)
-            show_notification("Успешная авторизация")
+            tray_icon.showMessage("Уведомление", "Успешная авторизация", QSystemTrayIcon.Information, 1000)
+            # show_notification("Успешная авторизация")
+
+            # Сохраняем токен в файл
+            save_token_to_file(access_token)
     except Exception as e:
         print(f"Error: {e}")
 

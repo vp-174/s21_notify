@@ -1,4 +1,4 @@
-# build/0002
+# build/0003
 # username = "geoffrea@student.21-school.ru"
 # password = ""
 
@@ -13,9 +13,29 @@ from PySide6.QtWidgets import *
 import winsound
 import configparser
 import webbrowser
+import base64
+import pyperclip
 
-version = "build/0002"
+version = "build/0003"
 mute = 0
+key = "s21"
+
+def copy_to_clipboard(text):
+    pyperclip.copy(text)
+    tray_icon.showMessage("Уведомление", "E-mail скопирован в буфер", QSystemTrayIcon.Information, 5000)
+
+# Шифрование пароля перед сохранением
+def encrypt_password(password):
+    global key
+    encrypted_password = base64.b64encode((password + key).encode()).decode()
+    return encrypted_password
+
+# Дешифровка пароля при чтении
+def decrypt_password(encrypted_password):
+    global key
+    decrypted_password = base64.b64decode(encrypted_password.encode()).decode()
+    decrypted_password = decrypted_password.replace(key, '')
+    return decrypted_password
 
 class CustomDialog(QDialog):
     def __init__(self, message, message2, url):
@@ -104,7 +124,7 @@ class DonateDialog(QDialog):
 
             QPushButton {
                 min-width: 100px; 
-                max-width: 120px; 
+                max-width: 150px; 
                 background-color: #4CAF50;
                 color: white;
                 border-radius: 10px;
@@ -120,12 +140,13 @@ class DonateDialog(QDialog):
         """
         message_label.setAlignment(Qt.AlignmentFlag.AlignLeft)
         message_label.setStyleSheet("font-size: 14px; margin-bottom: 10px; font-weight: 500;")
-        ok_button = QPushButton("Подробнее")
+        ok_button = QPushButton("abasecode@gmail.com")
         cancel_button = QPushButton("Закрыть")
         ok_button.setStyleSheet(msg_style)
         cancel_button.setStyleSheet(msg_style)
-        ok_button.clicked.connect(lambda: webbrowser.open(url))
-        ok_button.clicked.connect(self.close)
+        # ok_button.clicked.connect(lambda: webbrowser.open(url))
+        ok_button.clicked.connect(lambda: copy_to_clipboard("abasecode@gmail.com"))
+        # ok_button.clicked.connect(self.close)
         cancel_button.clicked.connect(lambda: self.close())
         layout.addWidget(ok_button, 2, 0, alignment=Qt.AlignmentFlag.AlignHCenter)
         layout.addWidget(cancel_button, 2, 2, alignment=Qt.AlignmentFlag.AlignHCenter)
@@ -144,6 +165,10 @@ def process_string(sentence):
                 new_sentence += word + " "
         else:
             new_sentence += word + " "
+
+    if len(new_sentence) > 43:  # Проверяем длину предложения
+        new_sentence = new_sentence[:43] + "..."  # Обрезаем и добавляем три точки в конце
+
     return new_sentence
 
 def show_notification(message, message2):
@@ -215,6 +240,7 @@ def timeWork():
             mute = -1
 
 def show_login_window():
+    global key
     login_dialog = QDialog()
     login_dialog.setWindowTitle("Авторизация")
     login_dialog.setWindowFlags(Qt.FramelessWindowHint)
@@ -226,6 +252,7 @@ def show_login_window():
     exit_button = QPushButton("Выйти")
 
     def authenticate():
+        global key
         username = username_input.text()
         password = password_input.text()
         access_token = get_access_token(username, password)
@@ -263,17 +290,37 @@ def get_access_token(username, password):
     else:
         return None
 
+# def save_credentials_to_file(username, password):
+#     config = configparser.ConfigParser()
+#     config['AUTH'] = {'username': username, 'password': password}
+#     with open('data.ini', 'w') as configfile:
+#         config.write(configfile)
+#
+# def read_credentials_from_file():
+#     config = configparser.ConfigParser()
+#     config.read('data.ini')
+#     if 'AUTH' in config:
+#         return config['AUTH'].get('username'), config['AUTH'].get('password')
+#     else:
+#         return None, None
+
+# Сохранение шифрованных учетных данных в файл
 def save_credentials_to_file(username, password):
     config = configparser.ConfigParser()
-    config['AUTH'] = {'username': username, 'password': password}
+    encrypted_password = encrypt_password(password)
+    config['AUTH'] = {'username': username, 'password': encrypted_password}
     with open('data.ini', 'w') as configfile:
         config.write(configfile)
 
+# Чтение и расшифровка учетных данных из файла
 def read_credentials_from_file():
     config = configparser.ConfigParser()
     config.read('data.ini')
     if 'AUTH' in config:
-        return config['AUTH'].get('username'), config['AUTH'].get('password')
+        username = config['AUTH'].get('username')
+        encrypted_password = config['AUTH'].get('password')
+        password = decrypt_password(encrypted_password)
+        return username, password
     else:
         return None, None
 
@@ -310,7 +357,7 @@ def check_notify(access_token):
             for event in events:
                 name = process_string(event.get('name'))
                 desc = process_string(event.get('description'))
-                loc = event.get('location')
+                loc = process_string(event.get('location'))
                 date_start = event.get('startDateTime')
                 date_time_obj1 = datetime.strptime(date_start, '%Y-%m-%dT%H:%M:%SZ')
                 date_time_obj1 += timedelta(hours=5)

@@ -22,7 +22,7 @@ key = "s21"
 
 def copy_to_clipboard(text):
     pyperclip.copy(text)
-    tray_icon.showMessage("Уведомление", "E-mail скопирован в буфер", QSystemTrayIcon.Information, 5000)
+    tray_icon.showMessage("Уведомление", "E-mail скопирован в буфер обмена", QSystemTrayIcon.Information, 5000)
 
 # Шифрование пароля перед сохранением
 def encrypt_password(password):

@@ -1,9 +1,10 @@
-# build/0003
+# build/0004
 # username = "geoffrea@student.21-school.ru"
 # password = ""
 
 import sys
 import time
+import sqlite3
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 import requests
@@ -16,37 +17,38 @@ import webbrowser
 import base64
 import pyperclip
 
-version = "build/0003"
+version = "build/0004"
 mute = 0
 key = "s21"
 
 def copy_to_clipboard(text):
+    '''Копирование email в бумфер обмена'''
     pyperclip.copy(text)
     tray_icon.showMessage("Уведомление", "E-mail скопирован в буфер обмена", QSystemTrayIcon.Information, 5000)
-
-# Шифрование пароля перед сохранением
 def encrypt_password(password):
+    '''Шифрование пароля перед сохранением'''
     global key
     encrypted_password = base64.b64encode((password + key).encode()).decode()
     return encrypted_password
-
-# Дешифровка пароля при чтении
 def decrypt_password(encrypted_password):
+    '''Дешифровка пароля при чтении'''
     global key
     decrypted_password = base64.b64decode(encrypted_password.encode()).decode()
     decrypted_password = decrypted_password.replace(key, '')
     return decrypted_password
 
 class CustomDialog(QDialog):
-    def __init__(self, message, message2, url):
+    '''Класс окна события'''
+    def __init__(self, message, message2, url, event_id):
         super().__init__()
+        self.event_id = event_id  # Сохраняем идентификатор события
         self.setWindowTitle("Уведомление")
         self.setWindowFlags(Qt.FramelessWindowHint)
         self.setAttribute(Qt.WA_TranslucentBackground)
         self.setAutoFillBackground(True)
         layout = QGridLayout()
         bg = QWidget()
-        bg.setStyleSheet("background-image: url('data/msg_bg.png'); background-repeat: no-repeat; background-position: 50%; padding: 0px");
+        bg.setStyleSheet("background-image: url('data/msg_bg.png'); background-repeat: no-repeat; background-position: 50%; padding: 0px")
         bg.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(bg, 0, 0, 3, 3)
         message_label = QLabel(message)
@@ -62,7 +64,6 @@ class CustomDialog(QDialog):
                     margin-top: 10px;
                     margin-left: 0px;
             }
-
             QPushButton {
                 min-width: 100px; 
                 max-width: 120px; 
@@ -74,7 +75,6 @@ class CustomDialog(QDialog):
                 margin-left: 15px;
                 margin-right: 15px;
             }
-
             QPushButton:hover {
                 background-color: #6CBFD4;
             }
@@ -87,14 +87,21 @@ class CustomDialog(QDialog):
         cancel_button = QPushButton("Закрыть")
         ok_button.setStyleSheet(msg_style)
         cancel_button.setStyleSheet(msg_style)
-        ok_button.clicked.connect(lambda: webbrowser.open(url))
-        ok_button.clicked.connect(self.close)
-        cancel_button.clicked.connect(lambda: self.close())
+
+        # Обработчик нажатия кнопки "Подробнее"
+        ok_button.clicked.connect(lambda: self.on_ok_button_clicked(url))
+
+        cancel_button.clicked.connect(self.close)
         layout.addWidget(ok_button, 2, 0, alignment=Qt.AlignmentFlag.AlignHCenter)
         layout.addWidget(cancel_button, 2, 2, alignment=Qt.AlignmentFlag.AlignHCenter)
         self.setLayout(layout)
 
+    def on_ok_button_clicked(self, url):
+        mark_event_as_viewed(self.event_id)  # Отметьте событие как просмотренное
+        webbrowser.open(url)  # Откройте URL
+        self.close()  # Закройте диалог
 class DonateDialog(QDialog):
+    '''Класса окна доната'''
     def __init__(self, message, url):
         super().__init__()
         self.setWindowTitle("Уведомление")
@@ -153,6 +160,7 @@ class DonateDialog(QDialog):
         self.setLayout(layout)
 
 def process_string(sentence):
+    '''Обработка сообщений события. Вывод определенного числа символов и добавление трех точек в конце'''
     words = sentence.split()
     new_sentence = ""
     word_count = 0
@@ -171,18 +179,18 @@ def process_string(sentence):
 
     return new_sentence
 
-def show_notification(message, message2):
+def show_notification(message, message2, event_id):
+    '''Вывод окна события'''
     filename2 = 'data/02.wav'
     winsound.PlaySound(filename2, winsound.SND_FILENAME)
     url = 'https://edu.21-school.ru'
-    dialog = CustomDialog(message, message2, url)
+    dialog = CustomDialog(message, message2, url, event_id)  # Передаем event_id
     dialog.setFixedSize(342, 235)
     dialog.setWindowFlags(dialog.windowFlags() | Qt.WindowStaysOnTopHint)  # Установка флага WindowStaysOnTopHint
     dialog.exec()
 
 def show_donate():
-    # filename2 = 'data/02.wav'
-    # winsound.PlaySound(filename2, winsound.SND_FILENAME)
+    '''Вывод кона доната'''
     url = 'https://rocketchat-student.21-school.ru/direct/66aa06b74e1904d388492898?msg=wetPQemmMd7LZa8ak'
     message2 = "Мой милый пир!\nЯ буду безумно рад,\nесли скинешь немного\n монет на энергетик...\n\nкарта (Сбербанк)\n2202 2032 1022 6652"
     dialog = DonateDialog(message2, url)
@@ -190,30 +198,8 @@ def show_donate():
     dialog.setWindowFlags(dialog.windowFlags() | Qt.WindowStaysOnTopHint)  # Установка флага WindowStaysOnTopHint
     dialog.exec()
 
-# def timeWork(access_token):
-#     global mute
-#     now = datetime.now()
-#     now += timedelta(hours=0)
-#     nowHour = now.hour
-#     nowMin = now.minute
-#     timeCheck = int(str(nowHour) + str(nowMin))
-#     # print(nowHour)
-#     # print(nowMin)
-#     print(timeCheck)
-#     if timeCheck >= 1625 and timeCheck <= 1636:
-#         #mute = 0
-#         check_notify(access_token)
-#     else:
-#         mute += 1
-#         # print(mute)
-#         if mute == 1:
-#             tray_icon.showMessage("Включен режим тишины", "Уведомления о событиях\n отключены до 9:00 утра", QSystemTrayIcon.Information, 10000)
-#         elif mute > 1:
-#             print(f"[ MUTE MODE ]")
-#             if timeCheck > 1642:
-#                 mute = 0
-
 def timeWork():
+    '''Показ окна события по времени (+ режим тишины)'''
     global mute
     now = datetime.now()
     now += timedelta(hours=0)
@@ -222,7 +208,7 @@ def timeWork():
     timeCheck = int(str(nowHour) + str(nowMin))  # Объединяем часы и минуты в одно число
     # print(nowHour)
     # print(nowMin)
-    print(f"mute: {mute}")
+    # print(f"mute: {mute}")
     print(f"timeCheck: {timeCheck}")
     if (timeCheck >= 900 and timeCheck <= 2300) or mute == -1:
         mute = 0
@@ -240,6 +226,7 @@ def timeWork():
             mute = -1
 
 def show_login_window():
+    '''Вывод окна авторизации'''
     global key
     login_dialog = QDialog()
     login_dialog.setWindowTitle("Авторизация")
@@ -273,6 +260,7 @@ def show_login_window():
     login_dialog.exec()
 
 def get_access_token(username, password):
+    '''Получение токена'''
     url = 'https://auth.sberclass.ru/auth/realms/EduPowerKeycloak/protocol/openid-connect/token'
     payload = {
         "username": username,
@@ -290,30 +278,15 @@ def get_access_token(username, password):
     else:
         return None
 
-# def save_credentials_to_file(username, password):
-#     config = configparser.ConfigParser()
-#     config['AUTH'] = {'username': username, 'password': password}
-#     with open('data.ini', 'w') as configfile:
-#         config.write(configfile)
-#
-# def read_credentials_from_file():
-#     config = configparser.ConfigParser()
-#     config.read('data.ini')
-#     if 'AUTH' in config:
-#         return config['AUTH'].get('username'), config['AUTH'].get('password')
-#     else:
-#         return None, None
-
-# Сохранение шифрованных учетных данных в файл
 def save_credentials_to_file(username, password):
+    '''Сохранение шифрованных учетных данных в файл'''
     config = configparser.ConfigParser()
     encrypted_password = encrypt_password(password)
     config['AUTH'] = {'username': username, 'password': encrypted_password}
     with open('data.ini', 'w') as configfile:
         config.write(configfile)
-
-# Чтение и расшифровка учетных данных из файла
 def read_credentials_from_file():
+    '''Чтение и расшифровка учетных данных из файла'''
     config = configparser.ConfigParser()
     config.read('data.ini')
     if 'AUTH' in config:
@@ -323,8 +296,8 @@ def read_credentials_from_file():
         return username, password
     else:
         return None, None
-
 def check_auth(access_token):
+    '''Проверка авторизации'''
     url = 'https://edu-api.21-school.ru/services/21-school/api/v1/events?from=2024-01-23T00%3A00%3A00Z&to=2024-01-24T00%3A00%3A00Z&type=TEST&limit=50&offset=0'
     headers = {
         'accept': 'application/json',
@@ -335,8 +308,8 @@ def check_auth(access_token):
         return True
     else:
         return False
-
 def check_notify(access_token):
+    '''Получение входящих событий с сервера и его вывод на экран'''
     now = datetime.now()
     from_date = now - timedelta(hours=5)
     to_date = now + relativedelta(months=3)
@@ -349,30 +322,99 @@ def check_notify(access_token):
     }
     response = requests.get(url, headers=headers)
     if response.status_code == 200:
-        print(f"check_notify - code 200")
+        # print(f"check_notify - code 200")
         events = response.json().get("events")
-        # print(events)
+
         if events:
-            print(f"check_notify - events OK")
+            # print(f"check_notify - events OK")
             for event in events:
-                name = process_string(event.get('name'))
-                desc = process_string(event.get('description'))
-                loc = process_string(event.get('location'))
-                date_start = event.get('startDateTime')
-                date_time_obj1 = datetime.strptime(date_start, '%Y-%m-%dT%H:%M:%SZ')
-                date_time_obj1 += timedelta(hours=5)
-                date_start = date_time_obj1.strftime('%d/%m/%Y %H:%M')
-                date_end = event.get('endDateTime')
-                date_time_obj2 = datetime.strptime(date_end, '%Y-%m-%dT%H:%M:%SZ')
-                date_time_obj2 += timedelta(hours=5)
-                date_end = date_time_obj2.strftime('%H:%M')
-                show_notification("".upper(), f"{name}\n\n{loc}\n{date_start} - {date_end}")
-                time.sleep(5)
+                # Проверяем, существует ли событие в базе данных
+                if not event_exists(event['id']):  # Предполагается, что у события есть уникальный идентификатор 'id'
+                    # Сохраните событие в базу данных
+                    save_event_to_db(event)
+
+                    # Показать событие
+                    show_event(event)
+
+                    show_notification("".upper(), f"{name}\n\n{loc}\n{date_start} - {date_end}", event['id'])
+                    time.sleep(5)
+
+                elif event_exists(event['id']) and get_viewed_status(event['id']) == 0:
+                    print(f"Событие с ID {event['id']} уже существует, но не просмотренно")
+
+                    # Показать событие
+                    show_event(event)
+
+                    show_notification("".upper(), f"{name}\n\n{loc}\n{date_start} - {date_end}", event['id'])
+                    time.sleep(5)
+                else:
+                    print(f"Событие с ID {event['id']} уже существует в базе данных.")
         else:
             print("events empty")
         return True
     else:
         return False
+def save_event_to_db(event):
+    '''Сохранение события в БД'''
+    conn = sqlite3.connect('data/events.db')
+    c = conn.cursor()
+    c.execute('''
+        INSERT INTO events (name, description, location, start_time, end_time, event_id)
+        VALUES (?, ?, ?, ?, ?, ?)
+    ''', (event['name'], event['description'], event['location'], event['startDateTime'], event['endDateTime'], event['id']))
+    conn.commit()
+    conn.close()
+def mark_event_as_viewed(event_id):
+    '''Пометка события просмотренным'''
+    conn = sqlite3.connect('data/events.db')
+    c = conn.cursor()
+    c.execute('''
+        UPDATE events
+        SET viewed = 1
+        WHERE event_id = ?
+    ''', (event_id,))
+    conn.commit()
+    conn.close()
+def event_exists(event_id):
+    '''Проверка существования события в БД'''
+    conn = sqlite3.connect('data/events.db')
+    c = conn.cursor()
+    c.execute('''
+        SELECT COUNT(*) FROM events
+        WHERE event_id = ?
+    ''', (event_id,))
+    exists = c.fetchone()[0] > 0
+    conn.close()
+    return exists
+def get_viewed_status(event_id):
+    '''Статус события (просомтренно или нет)'''
+    conn = sqlite3.connect('data/events.db')
+    c = conn.cursor()
+    c.execute('''
+        SELECT viewed FROM events
+        WHERE event_id = ?
+    ''', (event_id,))
+    result = c.fetchone()
+    conn.close()
+    if result:
+        return result[0]  # Возвращаем значение viewed
+    return None  # Если событие не найдено
+def show_event(event):
+    '''Формирование и показ события'''
+    name = process_string(event['name'])
+    desc = process_string(event['description'])
+    loc = process_string(event['location'])
+
+    date_start = event['startDateTime']
+    date_time_obj1 = datetime.strptime(date_start, '%Y-%m-%dT%H:%M:%SZ')
+    date_time_obj1 += timedelta(hours=5)
+    date_start = date_time_obj1.strftime('%d/%m/%Y %H:%M')
+    date_end = event['endDateTime']
+    date_time_obj2 = datetime.strptime(date_end, '%Y-%m-%dT%H:%M:%SZ')
+    date_time_obj2 += timedelta(hours=5)
+    date_end = date_time_obj2.strftime('%H:%M')
+
+    show_notification("".upper(), f"{name}\n\n{loc}\n{date_start} - {date_end}", event['id'])
 
 def exit_action():
     sys.exit()

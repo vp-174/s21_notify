@@ -1,7 +1,9 @@
-# build/0004
+# build/0005
 # username = "geoffrea@student.21-school.ru"
 # password = ""
 
+from config import *
+from create_database import *
 import sys
 import time
 import sqlite3
@@ -17,9 +19,11 @@ import webbrowser
 import base64
 import pyperclip
 
-version = "build/0004"
+version = "build/0005"
 mute = 0
 key = "s21"
+
+create_database()
 
 def copy_to_clipboard(text):
     '''Копирование email в бумфер обмена'''
@@ -212,7 +216,7 @@ def timeWork():
     print(f"timeCheck: {timeCheck}")
     if (timeCheck >= 900 and timeCheck <= 2300) or mute == -1:
         mute = 0
-        username, password = read_credentials_from_file()
+        username, password = read_credentials_from_db()
         access_token = get_access_token(username, password)
         check_notify(access_token)
     else:
@@ -244,7 +248,7 @@ def show_login_window():
         password = password_input.text()
         access_token = get_access_token(username, password)
         if access_token:
-            save_credentials_to_file(username, password)
+            save_credentials_to_db(username, password)
             login_dialog.close()
 
     login_button.clicked.connect(authenticate)
@@ -278,24 +282,40 @@ def get_access_token(username, password):
     else:
         return None
 
-def save_credentials_to_file(username, password):
-    '''Сохранение шифрованных учетных данных в файл'''
-    config = configparser.ConfigParser()
+def save_credentials_to_db(username, password):
+    '''Сохранение шифрованных учетных данных в БД'''
+    conn = DATA_BASE()
+    c = conn.cursor()
+
+    # Шифрование пароля
     encrypted_password = encrypt_password(password)
-    config['AUTH'] = {'username': username, 'password': encrypted_password}
-    with open('data.ini', 'w') as configfile:
-        config.write(configfile)
-def read_credentials_from_file():
-    '''Чтение и расшифровка учетных данных из файла'''
-    config = configparser.ConfigParser()
-    config.read('data.ini')
-    if 'AUTH' in config:
-        username = config['AUTH'].get('username')
-        encrypted_password = config['AUTH'].get('password')
+
+    # Вставка учетных данных в таблицу user
+    c.execute('''
+        INSERT INTO credentials (login, password) VALUES (?, ?)
+    ''', (username, encrypted_password))
+
+    conn.commit()
+    conn.close()
+
+
+def read_credentials_from_db():
+    '''Чтение и расшифровка учетных данных из БД'''
+    conn = DATA_BASE()
+    c = conn.cursor()
+
+    c.execute('SELECT login, password FROM credentials')
+    credentials = c.fetchall()
+
+    if credentials:
+        username, encrypted_password = credentials[0]  # Предполагаем, что берем только первую запись
         password = decrypt_password(encrypted_password)
+        conn.close()
         return username, password
     else:
         return None, None
+
+
 def check_auth(access_token):
     '''Проверка авторизации'''
     url = 'https://edu-api.21-school.ru/services/21-school/api/v1/events?from=2024-01-23T00%3A00%3A00Z&to=2024-01-24T00%3A00%3A00Z&type=TEST&limit=50&offset=0'
@@ -336,7 +356,7 @@ def check_notify(access_token):
                     # Показать событие
                     show_event(event)
 
-                    show_notification("".upper(), f"{name}\n\n{loc}\n{date_start} - {date_end}", event['id'])
+                    # show_notification("".upper(), f"{name}\n\n{loc}\n{date_start} - {date_end}", event['id'])
                     time.sleep(5)
 
                 elif event_exists(event['id']) and get_viewed_status(event['id']) == 0:
@@ -345,7 +365,7 @@ def check_notify(access_token):
                     # Показать событие
                     show_event(event)
 
-                    show_notification("".upper(), f"{name}\n\n{loc}\n{date_start} - {date_end}", event['id'])
+                    # show_notification("".upper(), f"{name}\n\n{loc}\n{date_start} - {date_end}", event['id'])
                     time.sleep(5)
                 else:
                     print(f"Событие с ID {event['id']} уже существует в базе данных.")
@@ -356,7 +376,7 @@ def check_notify(access_token):
         return False
 def save_event_to_db(event):
     '''Сохранение события в БД'''
-    conn = sqlite3.connect('data/events.db')
+    conn = DATA_BASE()
     c = conn.cursor()
     c.execute('''
         INSERT INTO events (name, description, location, start_time, end_time, event_id)
@@ -366,7 +386,7 @@ def save_event_to_db(event):
     conn.close()
 def mark_event_as_viewed(event_id):
     '''Пометка события просмотренным'''
-    conn = sqlite3.connect('data/events.db')
+    conn = DATA_BASE()
     c = conn.cursor()
     c.execute('''
         UPDATE events
@@ -377,7 +397,7 @@ def mark_event_as_viewed(event_id):
     conn.close()
 def event_exists(event_id):
     '''Проверка существования события в БД'''
-    conn = sqlite3.connect('data/events.db')
+    conn = DATA_BASE()
     c = conn.cursor()
     c.execute('''
         SELECT COUNT(*) FROM events
@@ -388,7 +408,7 @@ def event_exists(event_id):
     return exists
 def get_viewed_status(event_id):
     '''Статус события (просомтренно или нет)'''
-    conn = sqlite3.connect('data/events.db')
+    conn = DATA_BASE()
     c = conn.cursor()
     c.execute('''
         SELECT viewed FROM events
@@ -402,7 +422,10 @@ def get_viewed_status(event_id):
 def show_event(event):
     '''Формирование и показ события'''
     name = process_string(event['name'])
-    desc = process_string(event['description'])
+    if not event['description']:
+        desc = ""
+    else:
+        desc = process_string(event['description'])
     loc = process_string(event['location'])
 
     date_start = event['startDateTime']
@@ -430,7 +453,7 @@ if __name__ == "__main__":
     tray_icon = QSystemTrayIcon(QIcon("data/icon.png"), app)
     tray_icon.setToolTip(f"S21 Notify {version}\nУведомление о новых событиях")
     menu = QMenu()
-    vers_action = QAction("build/0002")
+    vers_action = QAction(version)
     vers_action.setEnabled(False)
     settings_action = QAction("Настройки", triggered=settings_action)
     donate_action = QAction("Задонатить", triggered=show_donate)
@@ -443,26 +466,14 @@ if __name__ == "__main__":
     tray_icon.setContextMenu(menu)
     tray_icon.show()
 
-    while not read_credentials_from_file()[0]:
+    while not read_credentials_from_db()[0]:
         show_login_window()
 
-    if not read_credentials_from_file()[0]:
+    if not read_credentials_from_db()[0]:
         show_login_window()
     else:
-        username, password = read_credentials_from_file()
+        username, password = read_credentials_from_db()
         access_token = get_access_token(username, password)
-
-        # def update_token():
-        #     username, password = read_credentials_from_file()
-        #     new_access_token = get_access_token(username, password)
-        #     if new_access_token:
-        #         access_token = new_access_token
-        #         tray_icon.showMessage("Уведомление", "Токен обновлен", QSystemTrayIcon.Information, 5000)
-        #
-        # # Создание таймера для обновления токена каждые 6 часов
-        # timer1 = QTimer()
-        # timer1.timeout.connect(update_token)
-        # timer1.start(6 * 3600 * 1000)  # 6 часов в миллисекундах
 
         if check_auth(access_token):
             time.sleep(5)

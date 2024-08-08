@@ -43,7 +43,7 @@ class S21_Notify_App(Tray):
                 self.event.timeWork()
                 timer2 = QTimer()
                 timer2.timeout.connect(lambda: self.event.timeWork())
-                timer2.start(60 * 60000)
+                timer2.start(get_event_period * 60000)
             else:
                 self.tr.icon.showMessage("Уведомление", "Ошибка авторизации", QSystemTrayIcon.Information, 5000)
 

@@ -21,25 +21,41 @@ class CustomDialog(QDialog):
         layout.addWidget(message_label2, 0, 0, 3, 3, alignment=Qt.AlignmentFlag.AlignHCenter)
         msg_style = """
             QLabel {
-                    font-size: 18px;
-                    font-weight: 700;
-                    min-width: 316px;
-                    max-width: 342px;
-                    margin-top: 10px;
-                    margin-left: 0px;
+                font-size: 18px;
+                font-weight: 700;
+                min-width: 396px;
+                max-width: 422px;
+                margin-top: 10px;
+                margin-left: 0px;
             }
-            QPushButton {
+
+            QPushButton#ok_button {
                 min-width: 100px; 
                 max-width: 120px; 
                 background-color: #4CAF50;
                 color: white;
                 border-radius: 10px;
                 padding: 6px;
-                margin-bottom: 14px;
-                margin-left: 15px;
-                margin-right: 15px;
+                margin-bottom: 54px;
+                margin-left: 55px;
             }
-            QPushButton:hover {
+
+            QPushButton#ok_button:hover {
+                background-color: #6CBFD4;
+            }
+
+            QPushButton#cancel_button {
+                min-width: 100px; 
+                max-width: 120px; 
+                background-color: #4CAF50;
+                color: white;
+                border-radius: 10px;
+                padding: 6px;
+                margin-bottom: 54px;
+                margin-right: 55px;
+            }
+
+            QPushButton#cancel_button:hover {
                 background-color: #6CBFD4;
             }
         """
@@ -49,6 +65,11 @@ class CustomDialog(QDialog):
         message_label2.setStyleSheet("font-size: 14px; margin-bottom: 20px; font-weight: 500;")
         ok_button = QPushButton("Подробнее")
         cancel_button = QPushButton("Закрыть")
+
+        # Установка objectName
+        ok_button.setObjectName("ok_button")
+        cancel_button.setObjectName("cancel_button")
+
         ok_button.setStyleSheet(msg_style)
         cancel_button.setStyleSheet(msg_style)
 
@@ -86,35 +107,60 @@ class DonateDialog(QDialog):
         message_label = QLabel(message)
         layout.addWidget(message_label, 1, 1, 1, 2, alignment=Qt.AlignmentFlag.AlignCenter)
         msg_style = """
-            QLabel {
-                    font-size: 18px;
-                    font-weight: 700;
-                    min-width: 316px;
-                    max-width: 342px;
-                    margin-top: 10px;
-                    margin-left: 0px;
+            QLabel#msg {
+                font-size: 13px;
+                margin: 0 50 19 0;
             }
 
-            QPushButton {
+            QWidget#qrcode {
+                background-image: url('data/donat_qr.png');
+                background-repeat: no-repeat;
+                background-position: 50%; 
+                margin: 65 150 0 0;
+            }
+
+            QPushButton#ok_button {
                 min-width: 100px; 
                 max-width: 150px; 
                 background-color: #4CAF50;
                 color: white;
                 border-radius: 10px;
                 padding: 6px;
-                margin-bottom: 14px;
-                margin-left: 15px;
-                margin-right: 15px;
+                margin-bottom: 54px;
+                margin-left: 55px;
             }
 
-            QPushButton:hover {
+            QPushButton#ok_button:hover {
+                background-color: #6CBFD4;
+            }
+
+            QPushButton#cancel_button {
+                min-width: 100px; 
+                max-width: 120px; 
+                background-color: #4CAF50;
+                color: white;
+                border-radius: 10px;
+                padding: 6px;
+                margin-bottom: 54px;
+                margin-right: 55px;
+            }
+
+            QPushButton#cancel_button:hover {
                 background-color: #6CBFD4;
             }
         """
         message_label.setAlignment(Qt.AlignmentFlag.AlignLeft)
-        message_label.setStyleSheet("font-size: 14px; margin-bottom: 10px; font-weight: 500;")
-        ok_button = QPushButton("Обратная связь")
+        ok_button = QPushButton("abasecode@gmail.com")
         cancel_button = QPushButton("Закрыть")
+
+        # Установка objectName
+        image_label.setObjectName("qrcode")
+        message_label.setObjectName("msg")
+        ok_button.setObjectName("ok_button")
+        cancel_button.setObjectName("cancel_button")
+
+        image_label.setStyleSheet(msg_style)
+        message_label.setStyleSheet(msg_style)
         ok_button.setStyleSheet(msg_style)
         cancel_button.setStyleSheet(msg_style)
         # ok_button.clicked.connect(lambda: webbrowser.open(url))

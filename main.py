@@ -91,9 +91,9 @@ class S21_Notify_App(Tray):
     def show_donate(self):
         '''Вывод окна доната'''
         self.url = 'https://rocketchat-student.21-school.ru/direct/66aa06b74e1904d388492898?msg=wetPQemmMd7LZa8ak'
-        self.message2 = "Мой милый пир!\nЯ буду безумно рад,\nесли скинешь немного\n монет на энергетик...\n\nкарта (Сбербанк)\n2202 2032 1022 6652"
+        self.message2 = "Мой милый пир!\nЯ буду безумно рад\nтвоей благодарности\nна кофе с печеньками...\n\nкарта (Сбербанк)\n2202 2032 1022 6652"
         self.dialog = DonateDialog(self.message2, self.url, self.tr)
-        self.dialog.setFixedSize(342, 235)
+        self.dialog.setFixedSize(422, 315)
         self.dialog.setWindowFlags(self.dialog.windowFlags() | Qt.WindowStaysOnTopHint)  # Установка флага WindowStaysOnTopHint
         self.dialog.exec()
 

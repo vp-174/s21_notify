@@ -98,7 +98,7 @@ class Event(Tray):
         winsound.PlaySound(filename2, winsound.SND_FILENAME)
         url = 'https://edu.21-school.ru'
         dialog = CustomDialog(message, message2, url, event_id)  # Передаем event_id
-        dialog.setFixedSize(342, 235)
+        dialog.setFixedSize(422, 315)
         dialog.setWindowFlags(dialog.windowFlags() | Qt.WindowStaysOnTopHint)  # Установка флага WindowStaysOnTopHint
         dialog.exec()
 

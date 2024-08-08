@@ -1,5 +1,3 @@
-import sqlite3
+version = 'build/oop/0001'
 
-def DATA_BASE():
-    db = sqlite3.connect('data/events.db')
-    return db
+base_sql = 'data/events.db'

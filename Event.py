@@ -38,16 +38,12 @@ class Event(Tray):
                         time.sleep(5)
 
                     elif self.database.event_exists(event['id']) and self.database.get_viewed_status(event['id']) == 0:
-                        print(f"Событие с ID {event['id']} уже существует, но не просмотрено")
+                        #print(f"Событие с ID {event['id']} уже существует, но не просмотрено")
 
                         # Показать событие
                         self.format_event(event)
 
                         time.sleep(5)
-                    else:
-                        print(f"Событие с ID {event['id']} уже существует в базе данных.")
-            else:
-                print("events empty")
             return True
         else:
             return False
@@ -115,7 +111,7 @@ class Event(Tray):
         # print(nowHour)
         # print(nowMin)
         # print(f"mute: {mute}")
-        print(f"timeCheck: {timeCheck}")
+        #print(f"timeCheck: {timeCheck}")
         if (timeCheck >= 900 and timeCheck <= 2300) or mute == -1:
             self.mute = 0
             username, password = self.database.read_credentials_from_db()
@@ -127,6 +123,6 @@ class Event(Tray):
         if self.mute == 1:
             self.tray_icon.showMessage("Включен режим тишины", "Уведомления о событиях\n отключены до 9:00 утра", QSystemTrayIcon.Information, 10000)
         elif self.mute > 1:
-            print(f"[ MUTE MODE ]")
+            #print(f"[ MUTE MODE ]")
             if timeCheck >= 859 and timeCheck <= 1100:
                 self.mute = -1

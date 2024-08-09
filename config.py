@@ -1,4 +1,4 @@
-version = 'build/1001'
+version = 'build/1002'
 
 base_sql = 'data/events.db'
 

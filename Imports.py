@@ -11,7 +11,10 @@ import requests
 from PySide6.QtCore import *
 from PySide6.QtGui import *
 from PySide6.QtWidgets import *
-import winsound
+try:
+    import winsound
+except ImportError:
+    from playsound import playsound
 import webbrowser
 import base64
 import pyperclip

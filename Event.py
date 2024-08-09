@@ -95,7 +95,10 @@ class Event(Tray):
     def show_event_notify(self, message, message2, event_id):
         '''Вывод окна события'''
         filename2 = 'data/02.wav'
-        winsound.PlaySound(filename2, winsound.SND_FILENAME)
+        try:
+            winsound.PlaySound(filename2, winsound.SND_FILENAME)
+        except Exception:
+            playsound(filename2)
         url = 'https://edu.21-school.ru'
         dialog = CustomDialog(message, message2, url, event_id)  # Передаем event_id
         dialog.setFixedSize(422, 315)

@@ -38,10 +38,18 @@ class S21_Notify_App(Tray):
                 time.sleep(5)
                 self.tr.icon.showMessage("Уведомление", "Успешная авторизация", QSystemTrayIcon.Information, 5000)
                 filename1 = 'data/01.wav'
+                # try:
+                #     winsound.PlaySound(filename1, winsound.SND_FILENAME)
+                # except Exception:
+                #     playsound(filename1)
+
+                player = Audio(filename1)
                 try:
-                    winsound.PlaySound(filename1, winsound.SND_FILENAME)
-                except Exception:
-                    playsound(filename1)
+                    player.play()
+                except KeyboardInterrupt:
+                    print("Воспроизведение остановлено.")
+                finally:
+                    player.stop()
 
                 time.sleep(10)
                 self.event.timeWork()

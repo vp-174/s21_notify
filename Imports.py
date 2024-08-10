@@ -3,6 +3,12 @@ from config import *
 
 # модули
 import sys
+import platform
+import os
+import subprocess
+import json
+import traceback
+import threading
 import time
 import sqlite3
 from datetime import datetime, timedelta

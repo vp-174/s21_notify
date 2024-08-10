@@ -4,6 +4,10 @@
 
 from Imports import *
 
+if platform.system() == 'Linux':
+    # Отключение вывода ошибок
+    sys.stderr = open(os.devnull, 'w')
+
 class S21_Notify_App(Tray):
     def __init__(self):
         # self.version = "build/oop/0001"

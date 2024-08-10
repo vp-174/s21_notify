@@ -3,32 +3,46 @@ from Imports import *
 class Audio:
     def __init__(self, filename):
         self.filename = filename
-        self.wf = wave.open(self.filename, 'rb')
+        try:
+            self.wf = wave.open(self.filename, 'rb')
+        except FileNotFoundError:
+            print(f"Файл не найден: {self.filename}")
+            self.wf = None
+            return
+        except wave.Error as e:
+            print(f"Ошибка при открытии файла WAV: {e}")
+            self.wf = None
+            return
+
         self.p = pyaudio.PyAudio()
-        self.stream = self.p.open(
-            format=self.p.get_format_from_width(self.wf.getsampwidth()),
-            channels=self.wf.getnchannels(),
-            rate=self.wf.getframerate(),
-            output=True
-        )
+        try:
+            self.stream = self.p.open(
+                format=self.p.get_format_from_width(self.wf.getsampwidth()),
+                channels=self.wf.getnchannels(),
+                rate=self.wf.getframerate(),
+                output=True
+            )
+        except Exception as e:
+            print(f"Ошибка при открытии потока: {e}")
+            self.stream = None
+            self.p.terminate()
 
     def play(self):
-        data = self.wf.readframes(1024)
-        while data:
-            self.stream.write(data)
+        if self.wf is None or self.stream is None:
+            print("Не удалось воспроизвести звук, так как аудиофайл не был загружен корректно.")
+            return
+
+        try:
             data = self.wf.readframes(1024)
+            while data:
+                self.stream.write(data)
+                data = self.wf.readframes(1024)
+        except Exception as e:
+            print(f"Ошибка при воспроизведении: {e}")
 
     def stop(self):
-        self.stream.stop_stream()
-        self.stream.close()
-        self.p.terminate()
-
-# Пример использования класса
-# if __name__ == "__main__":
-#     player = AudioPlayer('01.wav')
-#     try:
-#         player.play()
-#     except KeyboardInterrupt:
-#         print("Воспроизведение остановлено.")
-#     finally:
-#         player.stop()
+        if self.stream is not None:
+            self.stream.stop_stream()
+            self.stream.close()
+        if self.p is not None:
+            self.p.terminate()

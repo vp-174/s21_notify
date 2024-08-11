@@ -56,10 +56,9 @@ class S21_Notify_App(Tray):
 
     def show_login_window(self):
         '''Вывод окна авторизации'''
-        # global key
         login_dialog = QDialog()
-        login_dialog.setFixedSize(240, 200)
-        login_dialog.setWindowTitle("Авторизация")
+        login_dialog.setFixedSize(360, 240)
+        # login_dialog.setAttribute(Qt.WA_TranslucentBackground)
         login_dialog.setWindowFlags(Qt.FramelessWindowHint)
         layout = QVBoxLayout()
         username_input = QLineEdit()
@@ -67,7 +66,37 @@ class S21_Notify_App(Tray):
         password_input.setEchoMode(QLineEdit.Password)
         login_button = QPushButton("Авторизация")
         exit_button = QPushButton("Выйти")
-
+        login_style = '''
+            QLineEdit {
+                font-size: 22px;
+                padding: 0 5 2 5;
+                border: 1px solid #4CAF50;
+                border-radius: 5px;
+                
+            }
+            
+            QPushButton {
+                height: 20px;
+                padding: 8px;
+                background-color: #4CAF50;
+                border-radius: 5px;
+            }
+            
+            QPushButton:hover {
+                background-color: #6CBFD4;
+            }
+            
+            QLabel {
+                font-size: 14px;
+                color: #000000;
+                border-radius: 10px;
+            }
+            
+        '''
+        username_input.setStyleSheet(login_style)
+        password_input.setStyleSheet(login_style)
+        login_button.setStyleSheet(login_style)
+        exit_button.setStyleSheet(login_style)
         def authenticate():
             username = username_input.text()
             password = password_input.text()
@@ -79,12 +108,20 @@ class S21_Notify_App(Tray):
         login_button.clicked.connect(authenticate)
         exit_button.clicked.connect(lambda: sys.exit())
 
-        layout.addWidget(QLabel("Логин:"))
+        l = QLabel("Логин:")
+        p = QLabel("Пароль:")
+
+
+        layout.addWidget(l)
         layout.addWidget(username_input)
-        layout.addWidget(QLabel("Пароль:"))
+        layout.addWidget(p)
         layout.addWidget(password_input)
         layout.addWidget(login_button)
         layout.addWidget(exit_button)
+
+        l.setStyleSheet(login_style)
+        p.setStyleSheet(login_style)
+
         login_dialog.setLayout(layout)
 
         # Получение размеров экрана

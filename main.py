@@ -87,7 +87,8 @@ class S21_Notify_App(Tray):
         login_dialog.setLayout(layout)
 
         # Получение размеров экрана
-        screen_geometry = QDesktopWidget().screenGeometry()
+        screen = QApplication.primaryScreen()
+        screen_geometry = screen.geometry()
         screen_width = screen_geometry.width()
         screen_height = screen_geometry.height()
 

@@ -3,7 +3,7 @@ from config import *
 
 # модули
 import sys
-import platform
+# import platform
 import os
 import subprocess
 import json

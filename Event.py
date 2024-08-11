@@ -96,13 +96,14 @@ class Event(Tray):
         # except Exception:
         #     playsound(filename2)
 
-        player = Audio(filename2)
-        try:
-            player.play()
-        except KeyboardInterrupt:
-            print("Воспроизведение остановлено.")
-        finally:
-            player.stop()
+        # try:
+        #     player = Audio(filename2)
+        #     player.play()
+        # except Exception:
+        #     player.stop()
+        # finally:
+        #     player.stop()
+        play_wave(filename2)
 
         url = 'https://edu.21-school.ru'
         dialog = CustomDialog(message, message2, url, event_id)  # Передаем event_id

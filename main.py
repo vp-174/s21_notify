@@ -4,9 +4,9 @@
 
 from Imports import *
 
-if platform.system() == 'Linux':
-    # Отключение вывода ошибок
-    sys.stderr = open(os.devnull, 'w')
+# if platform.system() == 'Linux':
+#     # Отключение вывода ошибок
+#     sys.stderr = open(os.devnull, 'w')
 
 class S21_Notify_App(Tray):
     def __init__(self):
@@ -47,13 +47,15 @@ class S21_Notify_App(Tray):
                 # except Exception:
                 #     playsound(filename1)
 
-                player = Audio(filename1)
-                try:
-                    player.play()
-                except KeyboardInterrupt:
-                    print("Воспроизведение остановлено.")
-                finally:
-                    player.stop()
+                # try:
+                #     player = Audio(filename1)
+                #     player.play()
+                # except Exception:
+                #     player.stop()
+                # finally:
+                #     player.stop()
+
+                play_wave(filename1)
 
                 time.sleep(10)
                 self.event.timeWork()

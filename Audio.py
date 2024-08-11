@@ -38,7 +38,7 @@ class Audio:
                 self.stream.write(data)
                 data = self.wf.readframes(1024)
         except Exception as e:
-            print(f"Ошибка при воспроизведении: {e}")
+            self.stream.close()
 
     def stop(self):
         if self.stream is not None:
@@ -46,3 +46,21 @@ class Audio:
             self.stream.close()
         if self.p is not None:
             self.p.terminate()
+
+def play_wave(filename):
+    chunk = 1024
+
+    with wave.open(filename, 'rb') as wf:
+        p = pyaudio.PyAudio()
+        stream = p.open(format=p.get_format_from_width(wf.getsampwidth()),
+                         channels=wf.getnchannels(),
+                         rate=wf.getframerate(),
+                         output=True)
+
+        data = wf.readframes(chunk)
+        while data:
+            stream.write(data)
+            data = wf.readframes(chunk)
+
+        stream.close()
+        p.terminate()

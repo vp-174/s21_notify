@@ -91,24 +91,30 @@ class Event(Tray):
     def show_event_notify(self, message, message2, event_id):
         '''Вывод окна события'''
         filename2 = 'data/02.wav'
-        # try:
-        #     winsound.PlaySound(filename2, winsound.SND_FILENAME)
-        # except Exception:
-        #     playsound(filename2)
-
-        # try:
-        #     player = Audio(filename2)
-        #     player.play()
-        # except Exception:
-        #     player.stop()
-        # finally:
-        #     player.stop()
         play_wave(filename2)
 
         url = 'https://edu.21-school.ru'
         dialog = CustomDialog(message, message2, url, event_id)  # Передаем event_id
         dialog.setFixedSize(422, 315)
         dialog.setWindowFlags(dialog.windowFlags() | Qt.WindowStaysOnTopHint)  # Установка флага WindowStaysOnTopHint
+
+        # Получение размеров экрана
+        screen = QApplication.primaryScreen()
+        screen_geometry = screen.geometry()
+        screen_width = screen_geometry.width()
+        screen_height = screen_geometry.height()
+
+        # Получение размеров окна
+        dialog_width = self.dialog.width()
+        dialog_height = self.dialog.height()
+
+        # Вычисление позиции для центрирования окна
+        x = (screen_width - dialog_width) // 2
+        y = (screen_height - dialog_height) // 2
+
+        # Установка позиции окна
+        self.dialog.move(x, y)
+
         dialog.exec()
 
     def timeWork(self):

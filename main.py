@@ -42,19 +42,6 @@ class S21_Notify_App(Tray):
                 time.sleep(5)
                 self.tr.icon.showMessage("Уведомление", "Успешная авторизация", QSystemTrayIcon.Information, 5000)
                 filename1 = 'data/01.wav'
-                # try:
-                #     winsound.PlaySound(filename1, winsound.SND_FILENAME)
-                # except Exception:
-                #     playsound(filename1)
-
-                # try:
-                #     player = Audio(filename1)
-                #     player.play()
-                # except Exception:
-                #     player.stop()
-                # finally:
-                #     player.stop()
-
                 play_wave(filename1)
 
                 time.sleep(10)
@@ -98,6 +85,23 @@ class S21_Notify_App(Tray):
         layout.addWidget(login_button)
         layout.addWidget(exit_button)
         login_dialog.setLayout(layout)
+
+        # Получение размеров экрана
+        screen_geometry = QDesktopWidget().screenGeometry()
+        screen_width = screen_geometry.width()
+        screen_height = screen_geometry.height()
+
+        # Получение размеров окна
+        dialog_width = self.login_dialog.width()
+        dialog_height = self.login_dialog.height()
+
+        # Вычисление позиции для центрирования окна
+        x = (screen_width - dialog_width) // 2
+        y = (screen_height - dialog_height) // 2
+
+        # Установка позиции окна
+        self.login_dialog.move(x, y)
+
         login_dialog.exec()
 
     def exit_action_func(self):
@@ -113,6 +117,24 @@ class S21_Notify_App(Tray):
         self.dialog = DonateDialog(self.message2, self.url, self.tr)
         self.dialog.setFixedSize(422, 315)
         self.dialog.setWindowFlags(self.dialog.windowFlags() | Qt.WindowStaysOnTopHint)  # Установка флага WindowStaysOnTopHint
+
+        # Получение размеров экрана
+        screen = QApplication.primaryScreen()
+        screen_geometry = screen.geometry()
+        screen_width = screen_geometry.width()
+        screen_height = screen_geometry.height()
+
+        # Получение размеров окна
+        dialog_width = self.dialog.width()
+        dialog_height = self.dialog.height()
+
+        # Вычисление позиции для центрирования окна
+        x = (screen_width - dialog_width) // 2
+        y = (screen_height - dialog_height) // 2
+
+        # Установка позиции окна
+        self.dialog.move(x, y)
+
         self.dialog.exec()
 
 if __name__ == "__main__":

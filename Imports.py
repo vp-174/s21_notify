@@ -21,10 +21,6 @@ from PySide6.QtWidgets import *
 import pyaudio
 import wave
 
-# try:
-#     import winsound
-# except ImportError:
-#     from playsound import playsound
 import webbrowser
 import base64
 import pyperclip

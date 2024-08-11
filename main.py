@@ -93,15 +93,15 @@ class S21_Notify_App(Tray):
         screen_height = screen_geometry.height()
 
         # Получение размеров окна
-        dialog_width = self.login_dialog.width()
-        dialog_height = self.login_dialog.height()
+        dialog_width = login_dialog.width()
+        dialog_height = login_dialog.height()
 
         # Вычисление позиции для центрирования окна
         x = (screen_width - dialog_width) // 2
         y = (screen_height - dialog_height) // 2
 
         # Установка позиции окна
-        self.login_dialog.move(x, y)
+        login_dialog.move(x, y)
 
         login_dialog.exec()
 

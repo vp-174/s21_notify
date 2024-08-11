@@ -58,6 +58,7 @@ class S21_Notify_App(Tray):
         '''Вывод окна авторизации'''
         # global key
         login_dialog = QDialog()
+        login_dialog.setFixedSize(240, 200)
         login_dialog.setWindowTitle("Авторизация")
         login_dialog.setWindowFlags(Qt.FramelessWindowHint)
         layout = QVBoxLayout()

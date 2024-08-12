@@ -3,6 +3,7 @@
 # password = ""
 
 from Imports import *
+from Audio import *
 
 # if platform.system() == 'Linux':
 #     # Отключение вывода ошибок
@@ -24,6 +25,7 @@ class S21_Notify_App(Tray):
         self.auth = Auth()
         self.tr = Tray(self.tray_icon)
         self.event = Event()
+        self.pl = Audio()
         # self.auth = Auth()
 
     def run(self):
@@ -43,8 +45,7 @@ class S21_Notify_App(Tray):
                 self.tr.icon.showMessage("Уведомление", "Успешная авторизация", QSystemTrayIcon.Information, 5000)
 
                 filename1 = 'data/01.wav'
-                pl = Audio(filename1)
-                pl.play_wave()
+                self.pl.play_wave(filename1)
 
                 time.sleep(10)
                 self.event.timeWork()

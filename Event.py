@@ -1,4 +1,5 @@
 from Imports import *
+from Audio import *
 
 class Event(Tray):
     '''Класс событий'''
@@ -6,6 +7,7 @@ class Event(Tray):
         self.mute = 0
         self.database = Database()
         self.auth = Auth()
+        self.pl = Audio()
 
     def get_event(self, access_token):
         '''Получение входящих событий с сервера и его вывод на экран'''
@@ -91,8 +93,7 @@ class Event(Tray):
     def show_event_notify(self, message, message2, event_id):
         '''Вывод окна события'''
         filename2 = 'data/02.wav'
-        pl2 = Audio(filename2)
-        pl2.play_wave()
+        self.pl.play_wave(filename2)
 
         url = 'https://edu.21-school.ru'
         dialog = CustomDialog(message, message2, url, event_id)  # Передаем event_id

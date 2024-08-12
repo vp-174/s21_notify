@@ -107,15 +107,15 @@ class Event(Tray):
         screen_height = screen_geometry.height()
 
         # Получение размеров окна
-        dialog_width = self.dialog.width()
-        dialog_height = self.dialog.height()
+        dialog_width = dialog.width()
+        dialog_height = dialog.height()
 
         # Вычисление позиции для центрирования окна
         x = (screen_width - dialog_width) // 2
         y = (screen_height - dialog_height) // 2
 
         # Установка позиции окна
-        self.dialog.move(x, y)
+        dialog.move(x, y)
 
         dialog.exec()
 

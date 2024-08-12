@@ -91,7 +91,8 @@ class Event(Tray):
     def show_event_notify(self, message, message2, event_id):
         '''Вывод окна события'''
         filename2 = 'data/02.wav'
-        play_wave(filename2)
+        pl2 = Audio(filename2)
+        pl2.play_wave()
 
         url = 'https://edu.21-school.ru'
         dialog = CustomDialog(message, message2, url, event_id)  # Передаем event_id

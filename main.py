@@ -41,8 +41,10 @@ class S21_Notify_App(Tray):
             if self.auth.check_auth(access_token):
                 time.sleep(5)
                 self.tr.icon.showMessage("Уведомление", "Успешная авторизация", QSystemTrayIcon.Information, 5000)
+
                 filename1 = 'data/01.wav'
-                play_wave(filename1)
+                pl = Audio(filename1)
+                pl.play_wave()
 
                 time.sleep(10)
                 self.event.timeWork()

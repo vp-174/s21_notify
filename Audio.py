@@ -1,12 +1,10 @@
 from Imports import *
 
 class Audio:
-    def __init__(self, filename):
-        self.filename = filename
-    def play_wave(self):
+    '''Класс звука. Мультиплаформа'''
+    def play_wave(self, filename):
         chunk = 1024
-
-        with wave.open(self.filename, 'rb') as wf:
+        with wave.open(filename, 'rb') as wf:
             p = pyaudio.PyAudio()
             stream = p.open(format=p.get_format_from_width(wf.getsampwidth()),
                              channels=wf.getnchannels(),

@@ -24,7 +24,7 @@ class S21_Notify_App(Tray):
         self.database = Database()
         self.auth = Auth()
         self.tr = Tray(self.tray_icon)
-        self.event = Event()
+        self.event = Event(self.tr)
         self.pl = Audio()
         # self.auth = Auth()
 

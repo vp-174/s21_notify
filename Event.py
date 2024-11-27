@@ -3,7 +3,8 @@ from Audio import *
 
 class Event(Tray):
     '''Класс событий'''
-    def __init__(self):
+    def __init__(self, tr):
+        self.tr = tr
         self.mute = 0
         self.database = Database()
         self.auth = Auth()
@@ -130,7 +131,7 @@ class Event(Tray):
         # print(nowMin)
         # print(f"mute: {mute}")
         #print(f"timeCheck: {timeCheck}")
-        if (timeCheck >= 900 and timeCheck <= 2300) or mute == -1:
+        if (timeCheck >= 900 and timeCheck <= 2300) or self.mute == -1:
             self.mute = 0
             username, password = self.database.read_credentials_from_db()
             access_token = self.auth.get_access_token(username, password)
@@ -139,7 +140,7 @@ class Event(Tray):
             self.mute += 1
             # print(mute)
         if self.mute == 1:
-            self.tray_icon.showMessage("Включен режим тишины", "Уведомления о событиях\n отключены до 9:00 утра", QSystemTrayIcon.Information, 10000)
+            self.tr.icon.showMessage("Включен режим тишины", "Уведомления о событиях\n отключены до 9:00 утра", QSystemTrayIcon.Information, 10000)
         elif self.mute > 1:
             #print(f"[ MUTE MODE ]")
             if timeCheck >= 859 and timeCheck <= 1100:

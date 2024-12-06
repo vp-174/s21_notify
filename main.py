@@ -179,6 +179,9 @@ class S21_Notify_App(Tray):
 
         self.dialog.exec()
 
+    def show_calendar(self):
+        print("show calendar")
+
 if __name__ == "__main__":
     app = S21_Notify_App()
     app.run()

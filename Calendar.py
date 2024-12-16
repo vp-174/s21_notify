@@ -1,17 +1,12 @@
-# import sys
-# from PySide6.QtCore import *
-# from PySide6.QtGui import *
-# from PySide6.QtWidgets import *
-# from datetime import datetime
-
 from Imports import *
 
-class CalendarApp(QMainWindow):
+
+class Calendar(QDialog):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Календарь событий")
-        self.setGeometry(760, 400, 480, 480)
-        self.setWindowIcon(QIcon('data/icon.ico'))
+        # self.setWindowTitle("Календарь событий")
+        # self.setGeometry(760, 400, 480, 480)
+        # self.setWindowIcon(QIcon('data/icon.ico'))
         self.setWindowFlags(Qt.FramelessWindowHint)
         self.setAttribute(Qt.WA_TranslucentBackground)
         self.db = Database()
@@ -120,7 +115,7 @@ class CalendarApp(QMainWindow):
                 padding: 8px 6px;
                 margin-top: 3px;
             }
-        
+
             QPushButton#btn_close:hover {
                 background-color: #6CBFD4;
             }
@@ -129,13 +124,9 @@ class CalendarApp(QMainWindow):
         self.button.clicked.connect(self.close)
         layout.addWidget(self.button)
 
-        container = QWidget()
-        container.setLayout(layout)
-        self.setCentralWidget(container)
+        self.setLayout(layout)
 
-
-        self.events = db.get_events_from_today()
-        # print(self.events)
+        self.events = self.db.get_events_from_today()
 
         # Выделяем сегодняшнюю дату
         self.highlight_today()
@@ -151,8 +142,9 @@ class CalendarApp(QMainWindow):
         self.calendar.setDateTextFormat(date, format)
 
     def highlight_event_days(self):
-        selected_date = db.get_all_event_dates()
-        for i,sel in enumerate(selected_date):
+        selected_date = self.db.get_all_event_dates()
+        for i, sel in enumerate(selected_date):
+            # print(sel)
             if sel in self.events:
                 self.highlight_specific_date(sel)
 
@@ -179,34 +171,7 @@ class CalendarApp(QMainWindow):
         # Регулярное выражение для поиска ссылок
         url_pattern = r'https?://[^\s]+'
         # Заменяем ссылки на HTML-теги <a>
-        text_with_links = re.sub(url_pattern,r'<a href="\g<0>" style="color: blue; text-decoration: underline;">\g<0></a>', text2)
+        text_with_links = re.sub(url_pattern,
+                                 r'<a href="\g<0>" style="color: blue; text-decoration: underline;">\g<0></a>', text2)
         text_with_links = f"{text_with_links})"
         return text_with_links
-
-    def mousePressEvent(self, event):
-        # Проверяем, была ли нажата левая кнопка мыши
-        if event.button() == Qt.LeftButton:
-            print("click")
-            cursor = self.event_display.cursorForPosition(event.pos())
-            self.event_display.setTextCursor(cursor)
-            cursor.select(QTextCursor.WordUnderCursor)
-
-            # Получаем текст выделенного слова
-            selected_word = cursor.selectedText()
-
-            # Проверяем, является ли выделенный текст ссылкой
-            if re.match(r'https?://[^\s]+', selected_word):
-                QDesktopServices.openUrl(QUrl(selected_word))  # Открываем ссылку в браузере
-        super().mousePressEvent(event)  # Вызов базового класса для обработки других событий
-
-if __name__ == "__main__":
-    now = datetime.now()
-    print(now)
-    db = Database()
-    events_on_date = db.get_start_event_time(datetime.now())[0]
-    print(events_on_date)
-
-    app = QApplication(sys.argv)
-    window = CalendarApp()
-    window.show()
-    sys.exit(app.exec())

@@ -21,17 +21,17 @@ class CustomDialog(QDialog):
         layout.addWidget(message_label2, 0, 0, 3, 3, alignment=Qt.AlignmentFlag.AlignHCenter)
         msg_style = """
             QLabel {
-                font-size: 18px;
-                font-weight: 700;
-                min-width: 396px;
-                max-width: 422px;
-                margin-top: 10px;
-                margin-left: 0px;
+                    font-size: 18px;
+                    font-weight: 700;
+                    min-width: 396px;
+                    max-width: 422px;
+                    margin-top: 10px;
+                    margin-left: 0px;
             }
 
             QPushButton#ok_button {
-                min-width: 100px; 
-                max-width: 120px; 
+                min-width: 60px; 
+                max-width: 80px; 
                 background-color: #4CAF50;
                 color: white;
                 border-radius: 10px;
@@ -41,6 +41,21 @@ class CustomDialog(QDialog):
             }
 
             QPushButton#ok_button:hover {
+                background-color: #6CBFD4;
+            }
+
+            QPushButton#no_button {
+                min-width: 80px; 
+                max-width: 100px; 
+                background-color: #4CAF50;
+                color: white;
+                border-radius: 10px;
+                padding: 6px;
+                margin-bottom: 54px;
+                margin-left: 0px;
+            }
+
+            QPushButton#no_button:hover {
                 background-color: #6CBFD4;
             }
 
@@ -59,32 +74,43 @@ class CustomDialog(QDialog):
                 background-color: #6CBFD4;
             }
         """
+
         message_label.setAlignment(Qt.AlignmentFlag.AlignTop)
         message_label2.setAlignment(Qt.AlignmentFlag.AlignCenter)
         message_label.setStyleSheet(msg_style)
         message_label2.setStyleSheet("font-size: 14px; margin-bottom: 20px; font-weight: 500;")
-        ok_button = QPushButton("Подробнее")
-        cancel_button = QPushButton("Закрыть")
+        ok_button = QPushButton("Пойду")
+        no_button = QPushButton("Не пойду")
+        cancel_button = QPushButton("Решу позже")
 
-        # Установка objectName
+        # Установка objectName для кнопок
         ok_button.setObjectName("ok_button")
+        no_button.setObjectName("no_button")
         cancel_button.setObjectName("cancel_button")
 
         ok_button.setStyleSheet(msg_style)
+        no_button.setStyleSheet(msg_style)
         cancel_button.setStyleSheet(msg_style)
 
-        # Обработчик нажатия кнопки "Подробнее"
+        # Обработчики нажатия
         ok_button.clicked.connect(lambda: self.on_ok_button_clicked(url))
-
+        no_button.clicked.connect(lambda: self.on_no_button_clicked())
         cancel_button.clicked.connect(self.close)
+
         layout.addWidget(ok_button, 2, 0, alignment=Qt.AlignmentFlag.AlignHCenter)
+        layout.addWidget(no_button, 2, 1, alignment=Qt.AlignmentFlag.AlignHCenter)
         layout.addWidget(cancel_button, 2, 2, alignment=Qt.AlignmentFlag.AlignHCenter)
+
         self.setLayout(layout)
 
     def on_ok_button_clicked(self, url):
-        self.database.mark_event_as_viewed(self.event_id)  # Отметьте событие как просмотренное
-        webbrowser.open(url)  # Откройте URL
-        self.close()  # Закройте диалог
+        self.database.mark_event_as_ok(self.event_id)  # просмотренное в 1
+        # webbrowser.open(url)  # Откр URL
+        self.close()
+
+    def on_no_button_clicked(self):
+        self.database.mark_event_as_no(self.event_id)  # просмотренное в 2
+        self.close()
 
 class DonateDialog(QDialog):
     '''Класса окна доната'''

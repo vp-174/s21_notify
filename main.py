@@ -44,14 +44,21 @@ class S21_Notify_App(Tray):
                 time.sleep(5)
                 self.tr.icon.showMessage("Уведомление", "Успешная авторизация", QSystemTrayIcon.Information, 5000)
 
-                filename1 = 'data/01.wav'
-                self.pl.play_wave(filename1)
+                # filename1 = 'data/01.wav'
+                # self.pl.play_wave(filename1)
 
-                time.sleep(10)
+                time.sleep(5)
                 self.event.timeWork()
                 timer2 = QTimer()
                 timer2.timeout.connect(lambda: self.event.timeWork())
                 timer2.start(get_event_period * 60000)
+
+                time.sleep(5)
+                self.event.eventNotify()
+                timer3 = QTimer()
+                timer3.timeout.connect(lambda: self.event.eventNotify())
+                timer3.start(get_event_period * 6000)
+
             else:
                 self.tr.icon.showMessage("Уведомление", "Ошибка авторизации", QSystemTrayIcon.Information, 5000)
 
@@ -180,6 +187,28 @@ class S21_Notify_App(Tray):
         self.dialog.exec()
 
     def show_calendar(self):
+        self.dialog = Calendar()
+        self.dialog.setFixedSize(480, 480)
+        self.dialog.setWindowFlags(self.dialog.windowFlags() | Qt.WindowStaysOnTopHint)  # Установка флага WindowStaysOnTopHint
+
+        # Получение размеров экрана
+        screen = QApplication.primaryScreen()
+        screen_geometry = screen.geometry()
+        screen_width = screen_geometry.width()
+        screen_height = screen_geometry.height()
+
+        # Получение размеров окна
+        dialog_width = self.dialog.width()
+        dialog_height = self.dialog.height()
+
+        # Вычисление позиции для центрирования окна
+        x = (screen_width - dialog_width) // 2
+        y = (screen_height - dialog_height) // 2
+
+        # Установка позиции окна
+        self.dialog.move(x, y)
+
+        self.dialog.exec()
         print("show calendar")
 
 if __name__ == "__main__":

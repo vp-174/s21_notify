@@ -42,8 +42,8 @@ class CustomDialog(QDialog):
             }
 
             QPushButton#ok_button {
-                min-width: 100px; 
-                max-width: 120px; 
+                min-width: 60px; 
+                max-width: 80px; 
                 background-color: #4CAF50;
                 color: white;
                 border-radius: 10px;
@@ -53,6 +53,21 @@ class CustomDialog(QDialog):
             }
             
             QPushButton#ok_button:hover {
+                background-color: #6CBFD4;
+            }
+            
+            QPushButton#no_button {
+                min-width: 80px; 
+                max-width: 100px; 
+                background-color: #4CAF50;
+                color: white;
+                border-radius: 10px;
+                padding: 6px;
+                margin-bottom: 54px;
+                margin-left: 0px;
+            }
+            
+            QPushButton#no_button:hover {
                 background-color: #6CBFD4;
             }
             
@@ -70,26 +85,30 @@ class CustomDialog(QDialog):
             QPushButton#cancel_button:hover {
                 background-color: #6CBFD4;
             }
-
-
         """
         message_label.setAlignment(Qt.AlignmentFlag.AlignTop)
         message_label2.setAlignment(Qt.AlignmentFlag.AlignCenter)
         message_label.setStyleSheet(msg_style)
         message_label2.setStyleSheet("font-size: 14px; margin-bottom: 20px; font-weight: 500;")
-        ok_button = QPushButton("Подробнее")
-        cancel_button = QPushButton("Закрыть")
+        ok_button = QPushButton("Пойду")
+        no_button = QPushButton("Не пойду")
+        cancel_button = QPushButton("Решу позже")
 
         # Установка objectName для кнопок
         ok_button.setObjectName("ok_button")
+        no_button.setObjectName("no_button")
         cancel_button.setObjectName("cancel_button")
 
         ok_button.setStyleSheet(msg_style)
+        no_button.setStyleSheet(msg_style)
         cancel_button.setStyleSheet(msg_style)
+
         ok_button.clicked.connect(lambda: webbrowser.open(url))
         ok_button.clicked.connect(self.close)
         cancel_button.clicked.connect(lambda: self.close())
+
         layout.addWidget(ok_button, 2, 0, alignment=Qt.AlignmentFlag.AlignHCenter)
+        layout.addWidget(no_button, 2, 1, alignment=Qt.AlignmentFlag.AlignHCenter)
         layout.addWidget(cancel_button, 2, 2, alignment=Qt.AlignmentFlag.AlignHCenter)
         self.setLayout(layout)
 

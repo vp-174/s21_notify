@@ -3,6 +3,7 @@ from config import *
 
 # модули
 import sys
+import re
 # import platform
 import os
 import subprocess
@@ -31,4 +32,5 @@ from Database import *
 from Auth import *
 from Tray import *
 from CustomWindows import *
+from Calendar import *
 from Event import *

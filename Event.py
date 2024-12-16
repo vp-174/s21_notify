@@ -40,7 +40,7 @@ class Event(Tray):
 
                         time.sleep(5)
 
-                    elif self.database.event_exists(event['id']) and self.database.get_viewed_status(event['id']) == 0:
+                    elif self.database.event_exists(event['id']) and self.database.get_status(event['id']) == 0:
                         #print(f"Событие с ID {event['id']} уже существует, но не просмотрено")
 
                         # Показать событие
@@ -145,3 +145,25 @@ class Event(Tray):
             #print(f"[ MUTE MODE ]")
             if timeCheck >= 859 and timeCheck <= 1100:
                 self.mute = -1
+
+    def eventNotify(self):
+        '''Показ окна события по времени (+ режим тишины)'''
+        notify_time = 1
+        now = datetime.now()
+        print(now)
+        now += timedelta(hours=0)
+        nowHour = '{:02d}'.format(now.hour)  # Форматируем часы с ведущими нулями
+        nowMin = '{:02d}'.format(now.minute)  # Форматируем минуты с ведущими нулями
+        timeCheck = int(str(nowHour) + str(nowMin))  # Объединяем часы и минуты в одно число
+        # print(nowHour)
+        # print(nowMin)
+        # print(f"mute: {mute}")
+        print(f"timeCheck: {timeCheck}")
+        print(self.database.get_start_event_time(now)[0])
+        print(self.database.get_start_event_time(now)[0] - timeCheck)
+        if ((self.database.get_start_event_time(now)[0] - timeCheck) <= notify_time and (self.database.get_start_event_time(now)[0] - timeCheck) > -1):
+            self.tr.icon.showMessage("Напоминание","Не пропусти. Ближайшее событие сейчас уже начнётся", QSystemTrayIcon.Information, 15000)
+
+            filename1 = 'data/01.wav'
+            self.pl.play_wave(filename1)
+            # print("event start 5mins")

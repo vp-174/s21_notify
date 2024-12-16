@@ -1,13 +1,7 @@
-# build/1001
-# username = "geoffrea@student.21-school.ru"
-# password = ""
+# build/1001-test
 
 from Imports import *
 from Audio import *
-
-# if platform.system() == 'Linux':
-#     # Отключение вывода ошибок
-#     sys.stderr = open(os.devnull, 'w')
 
 class S21_Notify_App(Tray):
     def __init__(self):
@@ -25,8 +19,7 @@ class S21_Notify_App(Tray):
         self.auth = Auth()
         self.tr = Tray(self.tray_icon)
         self.event = Event(self.tr)
-        self.pl = Audio()
-        # self.auth = Auth()
+        # self.pl = Audio()
 
     def run(self):
         self.tray_menu()

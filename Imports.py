@@ -4,9 +4,9 @@ from config import *
 # модули
 import sys
 import re
-# import platform
-import os
+import platform
 import subprocess
+import os
 import json
 import traceback
 import threading

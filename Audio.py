@@ -18,3 +18,10 @@ class Audio:
 
             stream.close()
             p.terminate()
+
+    def play_wave_gnu(self, filename):
+        try:
+            # Выполняем команду aplay с указанным файлом
+            subprocess.run(['aplay', filename], check=True)
+        except subprocess.CalledProcessError as e:
+            print(f"Ошибка при воспроизведении аудио: {e}")

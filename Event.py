@@ -10,6 +10,12 @@ class Event(Tray):
         self.auth = Auth()
         self.pl = Audio()
 
+    def is_gnu(self):
+        return platform.system() == "Linux"
+
+    def is_win_pl(self):
+        return platform.system() == "Windows"
+
     def get_event(self, access_token):
         '''Получение входящих событий с сервера и его вывод на экран'''
         now = datetime.now()
@@ -94,8 +100,10 @@ class Event(Tray):
     def show_event_notify(self, message, message2, event_id):
         '''Вывод окна события'''
         try:
-            filename2 = 'data/02.wav'
-            self.pl.play_wave(filename2)
+            if self.is_win_pl():
+                self.pl.play_wave('data/02.wav')
+            if self.is_gnu():
+                self.pl.play_wave_gnu('data/02.wav')
         except Exception as e:
             pass
         url = 'https://edu.21-school.ru'
@@ -129,8 +137,6 @@ class Event(Tray):
         nowHour = '{:02d}'.format(now.hour)  # Форматируем часы с ведущими нулями
         nowMin = '{:02d}'.format(now.minute)  # Форматируем минуты с ведущими нулями
         timeCheck = int(str(nowHour) + str(nowMin))  # Объединяем часы и минуты в одно число
-        # print(nowHour)
-        # print(nowMin)
         # print(f"mute: {mute}")
         #print(f"timeCheck: {timeCheck}")
         if (timeCheck >= 900 and timeCheck <= 2300) or self.mute == -1:
@@ -157,18 +163,20 @@ class Event(Tray):
         nowHour = '{:02d}'.format(now.hour)  # Форматируем часы с ведущими нулями
         nowMin = '{:02d}'.format(now.minute)  # Форматируем минуты с ведущими нулями
         timeCheck = int(str(nowHour) + str(nowMin))  # Объединяем часы и минуты в одно число
-        # print(nowHour)
-        # print(nowMin)
         # print(f"mute: {mute}")
         # print(f"timeCheck: {timeCheck}")
-        # print(self.database.get_start_event_time(now)[0])
-        # print(self.database.get_start_event_time(now)[0] - timeCheck)
         try:
             if ((self.database.get_start_event_time(now)[0] - timeCheck) <= notify_time and (self.database.get_start_event_time(now)[0] - timeCheck) > -1):
                 self.tr.icon.showMessage("Напоминание","Не пропусти. Ближайшее событие сейчас уже начнётся", QSystemTrayIcon.Information, 15000)
 
-                filename1 = 'data/01.wav'
-                self.pl.play_wave(filename1)
+                try:
+                    if self.is_win_pl():
+                        self.pl.play_wave('data/01.wav')
+                    if self.is_gnu():
+                        self.pl.play_wave_gnu('data/01.wav')
+                except Exception as e:
+                    pass
                 # print("event start 5mins")
+
         except Exception as e:
             pass

@@ -226,7 +226,7 @@ class S21_Notify_App(Tray):
         self.dialog.move(x, y)
 
         self.dialog.exec()
-        print("show calendar")
+        # print("show calendar")
 
 if __name__ == "__main__":
     app = S21_Notify_App()

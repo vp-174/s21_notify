@@ -175,7 +175,7 @@ class Database:
         # Получаем сегодняшнюю дату с текущим временем, но с нулями для секунд и микросекунд
         now = datetime.now() - timedelta(hours=self.gmt)
         today_iso = now.replace(second=0, microsecond=0).isoformat() + 'Z'  # Приводим к формату ISO 8601 с указанием часового пояса
-        print(today_iso)
+        # print(today_iso)
 
         # Запрос всех уникальных дат событий начиная с сегодняшней даты
         c.execute('''

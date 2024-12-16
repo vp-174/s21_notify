@@ -67,46 +67,62 @@ class S21_Notify_App(Tray):
     def show_login_window(self):
         '''Вывод окна авторизации'''
         login_dialog = QDialog()
-        login_dialog.setFixedSize(360, 240)
-        # login_dialog.setAttribute(Qt.WA_TranslucentBackground)
+        login_dialog.setFixedSize(240, 190)
         login_dialog.setWindowFlags(Qt.FramelessWindowHint)
-        layout = QVBoxLayout()
+        login_dialog.setAttribute(Qt.WA_TranslucentBackground)
+
+        # Создаем виджет для диалога
+        dialog_widget = QWidget()
+
+
+        layout = QVBoxLayout(dialog_widget)
+
         username_input = QLineEdit()
         password_input = QLineEdit()
         password_input.setEchoMode(QLineEdit.Password)
         login_button = QPushButton("Авторизация")
         exit_button = QPushButton("Выйти")
+
         login_style = '''
-            QLineEdit {
-                font-size: 22px;
-                padding: 0 5 2 5;
-                border: 1px solid #4CAF50;
-                border-radius: 5px;
-                
+            QWidget {
+                border-radius: 18px; 
+                background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:1, stop:0 rgba(200, 205, 255, 255), stop:0.52514 rgba(183, 241, 203, 255));
             }
-            
+        
+            QLineEdit {
+                height: 40px;
+                font-size: 14px;
+                padding: 0 5 2 5;
+                border: 1px solid rgba(200, 205, 255, 255);
+                border-radius: 10px;
+                background-color: white;
+            }
+
             QPushButton {
                 height: 20px;
                 padding: 8px;
                 background-color: #4CAF50;
-                border-radius: 5px;
+                border-radius: 10px;
             }
-            
+
             QPushButton:hover {
                 background-color: #6CBFD4;
             }
-            
+
             QLabel {
                 font-size: 14px;
                 color: #000000;
-                border-radius: 10px;
             }
-            
         '''
+        dialog_widget.setStyleSheet(login_style)
         username_input.setStyleSheet(login_style)
         password_input.setStyleSheet(login_style)
         login_button.setStyleSheet(login_style)
         exit_button.setStyleSheet(login_style)
+
+        username_input.setPlaceholderText("Логин (edu.21-school.ru)")
+        password_input.setPlaceholderText("Пароль")
+
         def authenticate():
             username = username_input.text()
             password = password_input.text()
@@ -118,21 +134,22 @@ class S21_Notify_App(Tray):
         login_button.clicked.connect(authenticate)
         exit_button.clicked.connect(lambda: sys.exit())
 
-        l = QLabel("Логин:")
-        p = QLabel("Пароль:")
+        # l = QLabel("Логин:")
+        # p = QLabel("Пароль:")
 
-
-        layout.addWidget(l)
+        # layout.addWidget(l)
         layout.addWidget(username_input)
-        layout.addWidget(p)
+        # layout.addWidget(p)
         layout.addWidget(password_input)
         layout.addWidget(login_button)
         layout.addWidget(exit_button)
 
-        l.setStyleSheet(login_style)
-        p.setStyleSheet(login_style)
+        # l.setStyleSheet(login_style)
+        # p.setStyleSheet(login_style)
 
-        login_dialog.setLayout(layout)
+        # Устанавливаем виджет как центральный виджет диалога
+        login_dialog.setLayout(QVBoxLayout())
+        login_dialog.layout().addWidget(dialog_widget)
 
         # Получение размеров экрана
         screen = QApplication.primaryScreen()

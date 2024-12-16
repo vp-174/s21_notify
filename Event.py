@@ -93,9 +93,11 @@ class Event(Tray):
 
     def show_event_notify(self, message, message2, event_id):
         '''Вывод окна события'''
-        filename2 = 'data/02.wav'
-        self.pl.play_wave(filename2)
-
+        try:
+            filename2 = 'data/02.wav'
+            self.pl.play_wave(filename2)
+        except Exception as e:
+            pass
         url = 'https://edu.21-school.ru'
         dialog = CustomDialog(message, message2, url, event_id)  # Передаем event_id
         dialog.setFixedSize(422, 315)
@@ -140,7 +142,7 @@ class Event(Tray):
             self.mute += 1
             # print(mute)
         if self.mute == 1:
-            self.tr.icon.showMessage("Включен режим тишины", "Уведомления о событиях\n отключены до 9:00 утра", QSystemTrayIcon.Information, 10000)
+            self.tr.icon.showMessage("Включен режим тишины", "Уведомления о новых событиях\n отключены до 9:00 утра", QSystemTrayIcon.Information, 10000)
         elif self.mute > 1:
             #print(f"[ MUTE MODE ]")
             if timeCheck >= 859 and timeCheck <= 1100:
@@ -150,7 +152,7 @@ class Event(Tray):
         '''Показ окна события по времени (+ режим тишины)'''
         notify_time = 1
         now = datetime.now()
-        print(now)
+        # print(now)
         now += timedelta(hours=0)
         nowHour = '{:02d}'.format(now.hour)  # Форматируем часы с ведущими нулями
         nowMin = '{:02d}'.format(now.minute)  # Форматируем минуты с ведущими нулями
@@ -158,12 +160,15 @@ class Event(Tray):
         # print(nowHour)
         # print(nowMin)
         # print(f"mute: {mute}")
-        print(f"timeCheck: {timeCheck}")
-        print(self.database.get_start_event_time(now)[0])
-        print(self.database.get_start_event_time(now)[0] - timeCheck)
-        if ((self.database.get_start_event_time(now)[0] - timeCheck) <= notify_time and (self.database.get_start_event_time(now)[0] - timeCheck) > -1):
-            self.tr.icon.showMessage("Напоминание","Не пропусти. Ближайшее событие сейчас уже начнётся", QSystemTrayIcon.Information, 15000)
+        # print(f"timeCheck: {timeCheck}")
+        # print(self.database.get_start_event_time(now)[0])
+        # print(self.database.get_start_event_time(now)[0] - timeCheck)
+        try:
+            if ((self.database.get_start_event_time(now)[0] - timeCheck) <= notify_time and (self.database.get_start_event_time(now)[0] - timeCheck) > -1):
+                self.tr.icon.showMessage("Напоминание","Не пропусти. Ближайшее событие сейчас уже начнётся", QSystemTrayIcon.Information, 15000)
 
-            filename1 = 'data/01.wav'
-            self.pl.play_wave(filename1)
-            # print("event start 5mins")
+                filename1 = 'data/01.wav'
+                self.pl.play_wave(filename1)
+                # print("event start 5mins")
+        except Exception as e:
+            pass

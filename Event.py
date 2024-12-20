@@ -167,7 +167,7 @@ class Event(Tray):
         # print(f"timeCheck: {timeCheck}")
         try:
             if ((self.database.get_start_event_time(now)[0] - timeCheck) <= notify_time and (self.database.get_start_event_time(now)[0] - timeCheck) > -1):
-                self.tr.icon.showMessage("Напоминание","Не пропусти. Ближайшее событие сейчас уже начнётся", QSystemTrayIcon.Information, 15000)
+                self.tr.icon.showMessage("Напоминание","Ближайшее событие сейчас уже начнётся", QSystemTrayIcon.Information, 25000)
 
                 try:
                     if self.is_win_pl():

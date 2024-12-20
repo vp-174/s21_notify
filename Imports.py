@@ -26,6 +26,8 @@ import webbrowser
 import base64
 import pyperclip
 
+import psutil
+
 # классы
 from Encryption import *
 from Database import *
@@ -34,3 +36,4 @@ from Tray import *
 from CustomWindows import *
 from Calendar import *
 from Event import *
+# from Updater import *

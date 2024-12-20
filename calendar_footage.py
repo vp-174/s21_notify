@@ -200,10 +200,10 @@ class CalendarApp(QMainWindow):
         super().mousePressEvent(event)  # Вызов базового класса для обработки других событий
 
 if __name__ == "__main__":
-    now = datetime.now()
+    now = datetime.now() + timedelta(days=1)
     print(now)
     db = Database()
-    events_on_date = db.get_start_event_time(datetime.now())[0]
+    events_on_date = db.get_start_event_time(now)[0]
     print(events_on_date)
 
     app = QApplication(sys.argv)

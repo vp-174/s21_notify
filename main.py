@@ -3,6 +3,11 @@
 from Imports import *
 from Audio import *
 
+################# LOCK ##########
+import zc.lockfile
+import tempfile
+#################################
+
 class S21_Notify_App(Tray):
     def __init__(self):
         # self.version = "build/oop/0001"
@@ -19,7 +24,7 @@ class S21_Notify_App(Tray):
         self.auth = Auth()
         self.tr = Tray(self.tray_icon)
         self.event = Event(self.tr)
-        # self.pl = Audio()
+        # self.updater = Updater(version)
 
     def run(self):
         self.tray_menu()
@@ -50,7 +55,13 @@ class S21_Notify_App(Tray):
                 self.event.eventNotify()
                 timer3 = QTimer()
                 timer3.timeout.connect(lambda: self.event.eventNotify())
-                timer3.start(get_event_period * 6000)
+                timer3.start(1 * 60000) # 1 min
+
+                # time.sleep(5)
+                # timer4 = QTimer()
+                # timer4.timeout.connect(lambda: self.updater.start())
+                # # timer4.start(6 * 60 * 6000) # 6 hours
+                # timer4.start(3 * 60000)  # 3 min
 
             else:
                 self.tr.icon.showMessage("Уведомление", "Ошибка авторизации", QSystemTrayIcon.Information, 5000)
@@ -172,7 +183,7 @@ class S21_Notify_App(Tray):
     def show_donate(self):
         '''Вывод окна доната'''
         self.url = 'https://rocketchat-student.21-school.ru/direct/66aa06b74e1904d388492898?msg=wetPQemmMd7LZa8ak'
-        self.message2 = "Мой милый пир!\nЯ буду безумно рад\nтвоей благодарности\nна кофе с печеньками...\n\nкарта (Сбербанк)\n2202 2032 1022 6652"
+        self.message2 = "Дорогой пир!\nЯ буду безумно рад\nтвоей благодарности\nна кофе с печеньками...\n\nкарта (Сбербанк)\n2202 2032 1022 6652"
         self.dialog = DonateDialog(self.message2, self.url, self.tr)
         self.dialog.setFixedSize(422, 315)
         self.dialog.setWindowFlags(self.dialog.windowFlags() | Qt.WindowStaysOnTopHint)  # Установка флага WindowStaysOnTopHint
@@ -221,6 +232,31 @@ class S21_Notify_App(Tray):
         self.dialog.exec()
         # print("show calendar")
 
+def main():
+    # Создание временного файла для блокировки
+    lockfile_path = os.path.join(tempfile.gettempdir(), 's21-notify.lock')
+
+    try:
+        # Создание блокировки
+        lock = zc.lockfile.LockFile(lockfile_path)
+
+        # print("Программа запущена. Нажмите Ctrl+C для выхода.")
+
+        # Основной цикл программы
+        app = S21_Notify_App()
+        app.run()
+
+    except zc.lockfile.LockError:
+        print("Программа уже запущена!")
+    except KeyboardInterrupt:
+        print("Выход из программы.")
+    finally:
+        # Освобождение блокировки
+        if 'lock' in locals():
+            lock.close()
+            # Удаление файла блокировки, если он существует
+            if os.path.exists(lockfile_path):
+                os.remove(lockfile_path)
+
 if __name__ == "__main__":
-    app = S21_Notify_App()
-    app.run()
+    main()

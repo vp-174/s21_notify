@@ -41,7 +41,7 @@ class CustomDialog(QDialog):
             }
 
             QPushButton#ok_button:hover {
-                background-color: #6CBFD4;
+                background-color: #70a3d2;
             }
 
             QPushButton#no_button {
@@ -56,7 +56,7 @@ class CustomDialog(QDialog):
             }
 
             QPushButton#no_button:hover {
-                background-color: #6CBFD4;
+                background-color: #70a3d2;
             }
 
             QPushButton#cancel_button {
@@ -71,7 +71,7 @@ class CustomDialog(QDialog):
             }
 
             QPushButton#cancel_button:hover {
-                background-color: #6CBFD4;
+                background-color: #70a3d2;
             }
         """
 
@@ -135,7 +135,7 @@ class DonateDialog(QDialog):
         msg_style = """
             QLabel#msg {
                 font-size: 13px;
-                margin: 0 50 19 0;
+                margin: 0 25 19 0;
             }
 
             QWidget#qrcode {
@@ -147,7 +147,7 @@ class DonateDialog(QDialog):
 
             QPushButton#ok_button {
                 min-width: 100px; 
-                max-width: 150px; 
+                max-width: 120px; 
                 background-color: #4CAF50;
                 color: white;
                 border-radius: 10px;
@@ -157,7 +157,7 @@ class DonateDialog(QDialog):
             }
 
             QPushButton#ok_button:hover {
-                background-color: #6CBFD4;
+                background-color: #70a3d2;
             }
 
             QPushButton#cancel_button {
@@ -172,11 +172,11 @@ class DonateDialog(QDialog):
             }
 
             QPushButton#cancel_button:hover {
-                background-color: #6CBFD4;
+                background-color: #70a3d2;
             }
         """
         message_label.setAlignment(Qt.AlignmentFlag.AlignLeft)
-        ok_button = QPushButton("abasecode@gmail.com")
+        ok_button = QPushButton("Написать")
         cancel_button = QPushButton("Закрыть")
 
         # Установка objectName
@@ -202,3 +202,4 @@ class DonateDialog(QDialog):
         pyperclip.copy(text)
         self.classTray.icon.showMessage("Уведомление", "E-mail скопирован в буфер обмена", QSystemTrayIcon.Information, 5000)
         # self.show_message("Уведомление", "E-mail скопирован в буфер обмена")
+

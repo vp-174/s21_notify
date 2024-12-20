@@ -157,7 +157,7 @@ class Database:
             end_time_formatted = self.format_time(end_time)
             time_range = f"{start_time_formatted}-{end_time_formatted}"
 
-            event_detail = f"<b>{idx}.</b> {name}, {time_range} ({location})"
+            event_detail = f"<b>{idx}.</b> {name}, <b>{time_range}</b> {location}"
             event_list.append(event_detail)
 
         # Возвращаем события в формате, который вы указали

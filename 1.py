@@ -41,7 +41,7 @@ class DonateDialog(QDialog):
         msg_style = """
             QLabel#msg2 {
                 font-size: 13px;
-                margin: 0 50 19 0;
+                margin: 0 25 19 0;
             }
             
             QWidget#qrcode {
@@ -53,7 +53,7 @@ class DonateDialog(QDialog):
 
             QPushButton#ok_button {
                 min-width: 100px; 
-                max-width: 150px; 
+                max-width: 120px; 
                 background-color: #4CAF50;
                 color: white;
                 border-radius: 10px;
@@ -84,7 +84,7 @@ class DonateDialog(QDialog):
         # message_label.setAlignment(Qt.AlignmentFlag.AlignTop)
         message_label2.setAlignment(Qt.AlignmentFlag.AlignLeft)
         # message_label.setStyleSheet(msg_style)
-        ok_button = QPushButton("abasecode@gmail.com")
+        ok_button = QPushButton("Написать")
         cancel_button = QPushButton("Закрыть")
 
         # Установка objectName
@@ -108,7 +108,7 @@ def show_donate():
     # filename2 = 'data/02.wav'
     # winsound.PlaySound(filename2, winsound.SND_FILENAME)
     url = 'https://rocketchat-student.21-school.ru/direct/66aa06b74e1904d388492898?msg=wetPQemmMd7LZa8ak'
-    message2 = "Мой милый пир!\nЯ буду безумно рад\nтвоей благодарности\nна кофе с печеньками...\n\nкарта (Сбербанк)\n2202 2032 1022 6652"
+    message2 = "Дорогой пир!\nЯ буду безумно рад\nтвоей благодарности\nна кофе с печеньками...\n\nкарта (Сбербанк)\n2202 2032 1022 6652"
     dialog = DonateDialog(message2, url)
     dialog.setFixedSize(422, 315)
     dialog.setWindowFlags(dialog.windowFlags() | Qt.WindowStaysOnTopHint)  # Установка флага WindowStaysOnTopHint

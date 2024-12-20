@@ -79,10 +79,10 @@ class Calendar(QDialog):
             }
         """)
 
-        self.event_display = QTextEdit(self)
+        self.event_display = QTextBrowser(self)
         self.event_display.setReadOnly(True)
         self.event_display.setStyleSheet("""
-            QTextEdit {
+            QTextBrowser {
                 height: 120px;
                 min-height: 120px;
                 max-height: 150px;
@@ -117,7 +117,7 @@ class Calendar(QDialog):
             }
 
             QPushButton#btn_close:hover {
-                background-color: #6CBFD4;
+                background-color: #70a3d2;
             }
         """)
 
@@ -163,15 +163,16 @@ class Calendar(QDialog):
             self.highlight_specific_date(selected_date)
             events_with_links = self.make_links_clickable(events_)  # Оборачиваем ссылки в теги <a>
             self.event_display.setHtml(events_with_links)  # Устанавливаем HTML-контент
+            self.event_display.setOpenExternalLinks(True)
         else:
             self.event_display.setText("Событий нет")
 
     def make_links_clickable(self, text):
-        text2 = text[:-1]
+        # text2 = text[:-1]
         # Регулярное выражение для поиска ссылок
         url_pattern = r'https?://[^\s]+'
         # Заменяем ссылки на HTML-теги <a>
         text_with_links = re.sub(url_pattern,
-                                 r'<a href="\g<0>" style="color: blue; text-decoration: underline;">\g<0></a>', text2)
-        text_with_links = f"{text_with_links})"
+                                 r'<a href="\g<0>" style="color: blue; text-decoration: underline;">\g<0></a>', text)
+        text_with_links = f"{text_with_links}"
         return text_with_links

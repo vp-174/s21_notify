@@ -43,10 +43,7 @@ class S21_Notify_App(Tray):
         self.tray_icon.setToolTip(f"S21 Notify {version}\nУведомление о новых событиях")
 
         self.encription = Encryption()
-        try:
-            self.database = Database()
-        except Exception as e:
-            return
+        self.database = Database()
         self.auth = Auth()
         self.tr = Tray(self.tray_icon)
         self.event = Event(self.tr)

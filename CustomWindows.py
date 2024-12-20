@@ -135,7 +135,7 @@ class DonateDialog(QDialog):
         msg_style = """
             QLabel#msg {
                 font-size: 13px;
-                margin: 0 25 19 0;
+                margin: 0 33 19 0;
             }
 
             QWidget#qrcode {

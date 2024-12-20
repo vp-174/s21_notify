@@ -7,8 +7,11 @@ from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QProgressDialog, QApplication, QMessageBox
 import sys
 import os
+import json
+import win32api
+
 ################# LOCK ##########
-import zc.lockfile
+# import zc.lockfile
 #################################
 
 from io import BytesIO
@@ -18,32 +21,50 @@ import zipfile
 import psutil
 
 class Updater:
-    def __init__(self, version):
-        self.version = version
+    def __init__(self):
+        self.current_version = self.get_current_version()
         self.archive_version = None
+        self.update_info = self.load_update_info()
+
+    def get_current_version(self):
+        exe_path = 'C:\\Program Files (x86)\\s21-notify\\s21-notify.exe'
+        if os.path.exists(exe_path):
+            info = win32api.GetFileVersionInfo(exe_path, '\\')
+            # print(info)
+            version = info['FileVersionLS']
+            # print(version)
+            return f"1.0.0.{version}"
+        return None
+    def load_update_info(self):
+        try:
+            response = requests.get('https://fr-space.ru/update_info.json')
+            response.raise_for_status()  # Проверка на ошибки HTTP
+            return response.json()
+        except requests.RequestException as e:
+            QMessageBox.critical(None, 'Ошибка', f'Не удалось загрузить информацию об обновлении: {e}')
+            return None
 
     def get_latest_archive_url(self):
-        return 'https://fr-space.ru/s21notify-build1002.zip'
+        return self.update_info['winUrl'] if self.update_info else None
 
-    def get_archive_name(self, url):
-        return url.split('/')[-1]
+    def get_latest_version(self):
+        return self.update_info['version'] if self.update_info else None
 
-    def compare_versions(self, archive_name):
-        self.archive_version = archive_name[:-4][-9:]  # обрезаем .zip и берем последние 8 символов
-        return self.archive_version != self.version[-9:]
+    def compare_versions(self):
+        self.archive_version = self.get_latest_version()  # Получаем последнюю версию из JSON
+        return self.archive_version != self.current_version  # Сравниваем с текущей версией
 
     def update_program(self, url):
         self.dialog = UpdateDialog(url)
         self.dialog.show()
-        QTimer.singleShot(6000, self.MesBoxUpdated)
-        # QMessageBox.information(None, 'Обновление завершено', 'Программа успешно обновлена!')
+        self.dialog.thread.finished_signal.connect(self.run_program)  # Подключаем сигнал
 
-    def MesBoxUpdated(self):
-        reply2 = QMessageBox.question(None, 'Обновление',
-                                      f'Обновление завершено успешно. Запустить програму?',
-                                      QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
-        if reply2 == QMessageBox.Yes:
-            self.run_program()
+    # def MesBoxUpdated(self):
+    #     reply2 = QMessageBox.question(None, 'Обновление',
+    #                                   f'Обновление завершено успешно. Запустить программу?',
+    #                                   QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
+    #     if reply2 == QMessageBox.Yes:
+    #         self.run_program()
 
     def run_program(self):
         if platform.system() == "Windows":
@@ -51,27 +72,26 @@ class Updater:
         elif platform.system() == "Linux":
             os.system('s21-notify')
 
-
     def start(self):
+        self.current_version = self.get_current_version()
+        self.update_info = self.load_update_info()
         url = self.get_latest_archive_url()
-        archive_name = self.get_archive_name(url)
-        if self.compare_versions(archive_name):
-            # archive_version = archive_name[:-4][-9:]  # обрезаем .zip и берем последние 8 символов
+        if url is None:
+            return  # Выход, если информация не была загружена
+        if self.compare_versions():
             reply = QMessageBox.question(None, 'Обновление',
                                          f'Вышла новая версия {self.archive_version}. Обновить сейчас?',
                                          QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
             if reply == QMessageBox.Yes:
                 self.update_program(url)
-        # else:
-        #     QMessageBox.information(None, 'Обновление не требуется', 'Вы используете последнюю версию приложения!')
-        #     sys.exit()
 
 class UpdateThread(QThread):
     progress_signal = Signal(int, str)
+    finished_signal = Signal()  # Новый сигнал для уведомления о завершении
 
     def __init__(self, url):
-        super().__init__()
-        self.url = url
+        super().__init__()  # Передаем None по умолчанию
+        self.url = url  # Сохраняем URL как атрибут экземпляра
 
     def run(self):
         steps = ['Скачивание файла', 'Распаковка файла', 'Остановка программы', 'Копирование файла', 'Очистка']
@@ -93,7 +113,6 @@ class UpdateThread(QThread):
                             print(e)
                             proc.terminate()
                 elif platform.system() == "Linux":
-                    # Use Linux-specific command to stop the program
                     os.system('pkill s21-notify')
             elif step == 'Копирование файла':
                 if platform.system() == "Windows":
@@ -101,23 +120,14 @@ class UpdateThread(QThread):
                         exe_file = os.path.join(temp_dir, 's21-notify.exe')
                         shutil.copy2(exe_file, 'C:\\Program Files (x86)\\s21-notify\\s21-notify.exe')
                     except Exception as e:
-                        if platform.system() == "Windows":
-                            for proc in psutil.process_iter():
-                                try:
-                                    if proc.name() == 's21-notify.exe':
-                                        proc.terminate()
-                                except Exception as e:
-                                    print(e)
-                                    proc.terminate()
-                        elif platform.system() == "Linux":
-                            # Use Linux-specific command to stop the program
-                            os.system('pkill s21-notify')
+                        print(f'Ошибка при копировании файла: {e}')
                 elif platform.system() == "Linux":
-                    # Use Linux-specific command to copy the EXE file
                     exe_file = os.path.join(temp_dir, 's21-notify')
                     shutil.copy2(exe_file, '/usr/local/bin/s21-notify')
             elif step == 'Очистка':
                 shutil.rmtree(temp_dir)
+
+        self.finished_signal.emit()  # Уведомляем о завершении
 
 class UpdateDialog(QProgressDialog):
     def __init__(self, url):
@@ -125,60 +135,25 @@ class UpdateDialog(QProgressDialog):
         self.setModal(True)
         self.setRange(0, 5)
         self.setWindowTitle('Обновление')
-        self.setLabelText('Обновление...')
         self.thread = UpdateThread(url)
         self.thread.progress_signal.connect(self.update_progress)
+        self.thread.finished_signal.connect(self.close)  # Закрываем диалог при завершении
         self.thread.start()
 
     def update_progress(self, value, text):
         self.setLabelText(text)
         self.setValue(value)
 
-# def main():
-#     # Создание временного файла для блокировки
-#     lockfile_path = os.path.join(tempfile.gettempdir(), 's21-updater.lock')
-#
-#     try:
-#         # Создание блокировки
-#         lock = zc.lockfile.LockFile(lockfile_path)
-#
-#         # Основной цикл программы
-#         app = QApplication(sys.argv)
-#         app_icon = QIcon('data/icon.ico')
-#         app.setWindowIcon(app_icon)
-#
-#         updater = Updater(version)
-#
-#         updater.start()
-#         timer = QTimer()
-#         timer.timeout.connect(lambda: updater.start())
-#         # timer4.start(6 * 60 * 6000) # 6 hours
-#         timer.start(3 * 60000)  # 3 min
-#
-#     except zc.lockfile.LockError:
-#         print("Программа уже запущена!")
-#     except KeyboardInterrupt:
-#         print("Выход из программы.")
-#     finally:
-#         # Освобождение блокировки
-#         if 'lock' in locals():
-#             lock.close()
-#             # Удаление файла блокировки, если он существует
-#             if os.path.exists(lockfile_path):
-#                 os.remove(lockfile_path)
-
 if __name__ == '__main__':
     # main()
     app = QApplication(sys.argv)
     app_icon = QIcon('data/icon.ico')
     app.setWindowIcon(app_icon)
-
-    updater = Updater(version)
-
+    updater = Updater()
     updater.start()
     timer = QTimer()
     timer.timeout.connect(lambda: updater.start())
     # timer4.start(6 * 60 * 6000) # 6 hours
-    timer.start(3 * 60000)  # 3 min
-
-    sys.exit(app.exec())
+    timer.start(30 * 60000)  # 3 min
+    # sys.exit(app.exec())
+    app.exec()

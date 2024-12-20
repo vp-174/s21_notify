@@ -8,6 +8,26 @@ import zc.lockfile
 import tempfile
 #################################
 
+def run_updater():
+    if platform.system() == "Windows":
+        updater_name = 's21-updater.exe'
+    elif platform.system() == "Linux":
+        updater_name = 's21-updater'
+    else:
+        return  # Не поддерживаемая ОС
+
+    # Проверяем, запущен ли процесс
+    for proc in psutil.process_iter(['name']):
+        if proc.info['name'] == updater_name:
+            print(f"{updater_name} уже запущен.")
+            return  # Процесс уже запущен, выходим из функции
+
+    # Если процесс не запущен, запускаем его
+    if platform.system() == "Windows":
+        os.startfile(os.path.join('C:\\Program Files (x86)\\s21-notify', updater_name))
+    elif platform.system() == "Linux":
+        os.system(updater_name)
+
 class S21_Notify_App(Tray):
     def __init__(self):
         # self.version = "build/oop/0001"
@@ -110,7 +130,7 @@ class S21_Notify_App(Tray):
             }
 
             QPushButton:hover {
-                background-color: #6CBFD4;
+                background-color: #70a3d2;
             }
 
             QLabel {
@@ -241,6 +261,9 @@ def main():
         lock = zc.lockfile.LockFile(lockfile_path)
 
         # print("Программа запущена. Нажмите Ctrl+C для выхода.")
+
+        # Запускаем обновляющее приложение
+        run_updater()
 
         # Основной цикл программы
         app = S21_Notify_App()

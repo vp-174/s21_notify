@@ -24,7 +24,10 @@ def run_updater():
 
     # Если процесс не запущен, запускаем его
     if platform.system() == "Windows":
-        os.startfile(os.path.join('C:\\Program Files (x86)\\s21-notify', updater_name))
+        try:
+            os.startfile(os.path.join('C:\\Program Files (x86)\\s21-notify', updater_name))
+        except Exception as e:
+            return
     elif platform.system() == "Linux":
         os.system(updater_name)
 
@@ -40,7 +43,10 @@ class S21_Notify_App(Tray):
         self.tray_icon.setToolTip(f"S21 Notify {version}\nУведомление о новых событиях")
 
         self.encription = Encryption()
-        self.database = Database()
+        try:
+            self.database = Database()
+        except Exception as e:
+            return
         self.auth = Auth()
         self.tr = Tray(self.tray_icon)
         self.event = Event(self.tr)
@@ -203,7 +209,7 @@ class S21_Notify_App(Tray):
     def show_donate(self):
         '''Вывод окна доната'''
         self.url = 'https://rocketchat-student.21-school.ru/direct/66aa06b74e1904d388492898?msg=wetPQemmMd7LZa8ak'
-        self.message2 = "Дорогой пир!\nЯ буду безумно рад\nтвоей благодарности\nна кофе с печеньками...\n\nкарта (Сбербанк)\n2202 2032 1022 6652"
+        self.message2 = "Дорогой пир!\nЯ буду безумно рад\nтвоей благодарности\nна кофе с печеньками.\n\nкарта (Сбербанк)\n2202 2032 1022 6652"
         self.dialog = DonateDialog(self.message2, self.url, self.tr)
         self.dialog.setFixedSize(422, 315)
         self.dialog.setWindowFlags(self.dialog.windowFlags() | Qt.WindowStaysOnTopHint)  # Установка флага WindowStaysOnTopHint

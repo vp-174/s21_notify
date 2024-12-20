@@ -30,7 +30,7 @@ StringFileInfo(
   StringTable(
     u'040904B0',
     [StringStruct(u'CompanyName', u''),
-    StringStruct(u'FileDescription', u'Уведомления с 21-school.ru'),
+    StringStruct(u'FileDescription', u's21-notify'),
     StringStruct(u'FileVersion', u'1.0.0.1'),
     StringStruct(u'InternalName', u's21-notify'),
     StringStruct(u'LegalCopyright', u'Владислав Панов (geoffrea)'),

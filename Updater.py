@@ -98,11 +98,17 @@ class UpdateThread(QThread):
         for i, step in enumerate(steps):
             self.progress_signal.emit(i + 1, step)
             if step == 'Скачивание файла':
-                zip_data = requests.get(self.url).content
+                try:
+                    zip_data = requests.get(self.url).content
+                except Exception as e:
+                    print(f'Ошибка при скачивании файла: {e}')
             elif step == 'Распаковка файла':
-                temp_dir = tempfile.mkdtemp()
-                with zipfile.ZipFile(BytesIO(zip_data), 'r') as zip_ref:
-                    zip_ref.extractall(temp_dir)
+                try:
+                    temp_dir = tempfile.mkdtemp()
+                    with zipfile.ZipFile(BytesIO(zip_data), 'r') as zip_ref:
+                        zip_ref.extractall(temp_dir)
+                except Exception as e:
+                    print(f'Ошибка при распаковке файла: {e}')
             elif step == 'Остановка программы':
                 if platform.system() == "Windows":
                     for proc in psutil.process_iter():
@@ -110,7 +116,7 @@ class UpdateThread(QThread):
                             if proc.name() == 's21-notify.exe':
                                 proc.terminate()
                         except Exception as e:
-                            print(e)
+                            print(f'Ошибка остановки s 21-notify.exe: {e}')
                             proc.terminate()
                 elif platform.system() == "Linux":
                     os.system('pkill s21-notify')

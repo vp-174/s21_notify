@@ -41,7 +41,7 @@ class DonateDialog(QDialog):
         msg_style = """
             QLabel#msg2 {
                 font-size: 13px;
-                margin: 0 25 19 0;
+                margin: 0 33 19 0;
             }
             
             QWidget#qrcode {
@@ -108,7 +108,7 @@ def show_donate():
     # filename2 = 'data/02.wav'
     # winsound.PlaySound(filename2, winsound.SND_FILENAME)
     url = 'https://rocketchat-student.21-school.ru/direct/66aa06b74e1904d388492898?msg=wetPQemmMd7LZa8ak'
-    message2 = "Дорогой пир!\nЯ буду безумно рад\nтвоей благодарности\nна кофе с печеньками...\n\nкарта (Сбербанк)\n2202 2032 1022 6652"
+    message2 = "Дорогой пир!\nЯ буду безумно рад\nтвоей благодарности\nна кофе с печеньками.\n\nкарта (Сбербанк)\n2202 2032 1022 6652"
     dialog = DonateDialog(message2, url)
     dialog.setFixedSize(422, 315)
     dialog.setWindowFlags(dialog.windowFlags() | Qt.WindowStaysOnTopHint)  # Установка флага WindowStaysOnTopHint

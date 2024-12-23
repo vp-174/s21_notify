@@ -1,4 +1,6 @@
 # from Imports import *
+import time
+
 from config import *
 import requests
 import platform
@@ -35,13 +37,15 @@ class Updater:
             # print(version)
             return f"1.0.0.{version}"
         return None
+
     def load_update_info(self):
         try:
-            response = requests.get('https://fr-space.ru/update_info.json')
+            time.sleep(10)
+            response = requests.get('http://fr-space.ru/update_info.json')
             response.raise_for_status()  # Проверка на ошибки HTTP
             return response.json()
         except requests.RequestException as e:
-            QMessageBox.critical(None, 'Ошибка', f'Не удалось загрузить информацию об обновлении: {e}')
+            QMessageBox.critical(None, 'Ошибка', f'Не удалось связаться с сервером обновлений')
             return None
 
     def get_latest_archive_url(self):
@@ -160,6 +164,6 @@ if __name__ == '__main__':
     timer = QTimer()
     timer.timeout.connect(lambda: updater.start())
     # timer4.start(6 * 60 * 6000) # 6 hours
-    timer.start(30 * 60000)  # 3 min
+    timer.start(3 * 60000)  # 3 min
     # sys.exit(app.exec())
     app.exec()

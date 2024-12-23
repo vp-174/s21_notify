@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "s21-notify"
-#define MyAppVersion "1.0.0.1 beta"
+#define MyAppVersion "1.0.0.1-beta"
 #define MyAppPublisher "Vladislav Panov"
 #define MyAppURL "https://fr-space.ru"
 #define MyAppExeName "s21-notify.exe"
@@ -10,7 +10,7 @@
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application. Do not use the same AppId value in installers for other applications.
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
-AppId={{dd6a5a96-db8c-4222-9063-62bd6b6e0a86}
+AppId={{D13BEBFA-7425-44D3-85FE-AE72D6CA8B0C}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 ;AppVerName={#MyAppName} {#MyAppVersion}
@@ -20,17 +20,16 @@ AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
 DefaultDirName={autopf}\{#MyAppName}
 DisableDirPage=yes
-DisableProgramGroupPage=yes
+DisableProgramGroupPage=no
 DefaultGroupName={#MyAppName}
 ;LicenseFile=d:\_apps\s21_notify\dist\COPYING.txt
 LicenseFile=
 ; Uncomment the following line to run in non administrative install mode (install for current user only.)
-;PrivilegesRequired=lowest
-OutputBaseFilename=s21-notify_setup
+OutputBaseFilename=s21-notify-{#MyAppVersion}
 SetupIconFile=d:\_apps\s21_notify\dist\data\icon.ico
 UninstallDisplayIcon=d:\_apps\s21_notify\dist\data\icon.ico
 UninstallDisplayName={#MyAppName}
-PrivilegesRequired=admin
+PrivilegesRequired=none
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
@@ -47,6 +46,7 @@ Source: "d:\_apps\s21_notify\dist\{#MyAppExeName}"; DestDir: "{app}"; Flags: ign
 Source: "d:\_apps\s21_notify\dist\s21-updater.exe"; DestDir: "{app}"; Flags: ignoreversion; \
     BeforeInstall: TaskKill('s21-updater.exe')
 Source: "d:\_apps\s21_notify\dist\data\*"; DestDir: "{app}\data"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: ISTask.dll; DestDir: "{app}"
 
 [Code]
 procedure TaskKill(FileName: String);
@@ -56,7 +56,6 @@ begin
     Exec(ExpandConstant('{sys}\taskkill.exe'), '/f /im ' + '"' + FileName + '"', ExpandConstant('{sys}'), SW_HIDE, ewWaitUntilTerminated, ResultCode);
 end;
 
-[Code]
 function InitializeSetup(): Boolean;
 begin
   TaskKill('{#MyAppExeName}');
@@ -73,9 +72,19 @@ begin
   end;
 end;      
 
+[Run]
+Filename: "cmd"; Parameters: "/C icacls ""{app}\s21-notify.exe"" /grant %USERNAME%:(F)"; Flags: runhidden
+Filename: "cmd"; Parameters: "/C icacls ""{app}\s21-updater.exe"" /grant %USERNAME%:(F)"; Flags: runhidden
+
+; Установка полных прав для текущего пользователя на файл events.db
+Filename: "cmd"; Parameters: "/C icacls ""{app}\data\events.db"" /grant %USERNAME%:(OI)(CI)F"; Flags: runhidden
+
+; Установка полных прав для текущего пользователя на директорию data
+Filename: "cmd"; Parameters: "/C icacls ""{app}\data"" /grant %USERNAME%:(OI)(CI)F"; Flags: runhidden
 
 [Icons]
 ;Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
+Name: "{userstartup}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}";
 Name: "{commondesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
 ;Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{app}\unins000.exe"; IconFilename: "{app}\ui_images\uninstall.ico"; Tasks: startmenu
@@ -89,5 +98,5 @@ Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
 [UninstallDelete]
 Type: filesandordirs; Name: "{app}";
 
-[Registry]
-Root: HKLM; Subkey: "SOFTWARE\Microsoft\Windows\CurrentVersion\Run"; ValueType: string; ValueName: "s21-notify"; ValueData: "{app}\{#MyAppExeName}"; Flags: uninsdeletevalue
+;[Registry]
+;Root: HKCU; Subkey: "SOFTWARE\Microsoft\Windows\CurrentVersion\Run"; ValueType: string; ValueName: "s21-notify"; ValueData: "{app}\{#MyAppExeName}"; Flags: uninsdeletevalue

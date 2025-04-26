@@ -8,46 +8,53 @@ class Database:
         self.create_database()
 
     def connect(self):
-        return sqlite3.connect(self.db_name)
+        try:
+            return sqlite3.connect(self.db_name)
+        except Exception as e:
+            print(f"Ошибка подключения к базе данных: {e}")
+            return None  # Возвращаем None, если не удалось подключиться
 
     def create_database(self):
         conn = self.connect()
+        if conn is None:
+            return  # Если подключение не удалось, выходим из метода
         c = conn.cursor()
-
-        # Создание таблицы credentials
-        c.execute('''
-            CREATE TABLE IF NOT EXISTS credentials (
-                id INTEGER PRIMARY KEY,
-                login TEXT NOT NULL UNIQUE,
-                password TEXT NOT NULL
-            )
-       ''')
-        c.execute('''
-            CREATE TABLE IF NOT EXISTS events (
-                id INTEGER PRIMARY KEY,
-                name TEXT,
-                description TEXT,
-                location TEXT,
-                start_time TEXT,
-                end_time TEXT,
-                viewed INTEGER DEFAULT 0,
-                event_id INTEGER
-            )
-       ''')
-        c.execute('''
-            CREATE TABLE IF NOT EXISTS settings (
-                id INTEGER PRIMARY KEY,
-                name TEXT UNIQUE,
-                val INTEGER DEFAULT 0
-            )        
-        ''')
-
-        # Вставка значений в таблицу settings
-        c.execute('INSERT OR IGNORE INTO settings (name, val) VALUES (?, ?)', ('sound', 1))
-        c.execute('INSERT OR IGNORE INTO settings (name, val) VALUES (?, ?)', ('push', 1))
-
-        conn.commit()
-        conn.close()
+        # Создание таблиц и вставка значений...
+        try:
+            c.execute('''
+                CREATE TABLE IF NOT EXISTS credentials (
+                    id INTEGER PRIMARY KEY,
+                    login TEXT NOT NULL UNIQUE,
+                    password TEXT NOT NULL
+                )
+            ''')
+            c.execute('''
+                CREATE TABLE IF NOT EXISTS events (
+                    id INTEGER PRIMARY KEY,
+                    name TEXT,
+                    description TEXT,
+                    location TEXT,
+                    start_time TEXT,
+                    end_time TEXT,
+                    viewed INTEGER DEFAULT 0,
+                    event_id INTEGER
+                )
+            ''')
+            c.execute('''
+                CREATE TABLE IF NOT EXISTS settings (
+                    id INTEGER PRIMARY KEY,
+                    name TEXT UNIQUE,
+                    val INTEGER DEFAULT 0
+                )        
+            ''')
+            # Вставка значений в таблицу settings
+            c.execute('INSERT OR IGNORE INTO settings (name, val) VALUES (?, ?)', ('sound', 1))
+            c.execute('INSERT OR IGNORE INTO settings (name, val) VALUES (?, ?)', ('push', 1))
+            conn.commit()
+        except Exception as e:
+            print(f"Ошибка при создании базы данных: {e}")
+        finally:
+            conn.close()
 
     def save_credentials_to_db(self, username, password):
         '''Сохранение шифрованных учетных данных в БД'''
@@ -68,18 +75,23 @@ class Database:
     def read_credentials_from_db(self):
         '''Чтение и расшифровка учетных данных из БД'''
         conn = self.connect()
+        if conn is None:
+            return None, None  # Если подключение не удалось, возвращаем None
         c = conn.cursor()
-
-        c.execute('SELECT login, password FROM credentials')
-        credentials = c.fetchall()
-
-        if credentials:
-            username, encrypted_password = credentials[0]  # Берем только первую запись
-            password = self.encr.decrypt(encrypted_password)
-            conn.close()
-            return username, password
-        else:
+        try:
+            c.execute('SELECT login, password FROM credentials')
+            credentials = c.fetchall()
+            if credentials:
+                username, encrypted_password = credentials[0]  # Берем только первую запись
+                password = self.encr.decrypt(encrypted_password)
+                return username, password
+            else:
+                return None, None
+        except Exception as e:
+            print(f"Ошибка при чтении учетных данных: {e}")
             return None, None
+        finally:
+            conn.close()
 
     def save_event_to_db(self, event):
         '''Сохранение события в БД'''
@@ -170,8 +182,6 @@ class Database:
         '''Получение событий из БД начиная с сегодняшней даты'''
         conn = self.connect()
         c = conn.cursor()
-
-        # Получаем сегодняшнюю дату в формате ISO 8601
         # Получаем сегодняшнюю дату с текущим временем, но с нулями для секунд и микросекунд
         now = datetime.now() - timedelta(hours=self.gmt)
         today_iso = now.replace(second=0, microsecond=0).isoformat() + 'Z'  # Приводим к формату ISO 8601 с указанием часового пояса
@@ -220,19 +230,6 @@ class Database:
 
         conn.close()
         return start_time_list
-
-    # def get_all_event_dates(self):
-    #     '''Получение всех уникальных дат событий из БД'''
-    #     conn = self.connect()
-    #     c = conn.cursor()
-    #     c.execute('''
-    #         SELECT DISTINCT DATE(start_time) FROM events WHERE viewed = 1
-    #     ''')
-    #     dates = c.fetchall()
-    #     conn.close()
-    #
-    #     # Преобразуем список к типу datetime
-    #     return [datetime.strptime(date[0], '%Y-%m-%d') for date in dates]
 
     def get_all_event_dates(self):
         '''Получение всех уникальных дат событий из БД, где start_time больше текущего времени'''

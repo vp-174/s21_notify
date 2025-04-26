@@ -13,14 +13,17 @@ class Auth:
             "grant_type": "password",
             "client_id": "s21-open-api"
         }
-        response = requests.post(url, data=payload)
-        if response.status_code == 200:
-            # time.sleep(3)
-            # tray_icon.showMessage("Уведомление", "Токен получен", QSystemTrayIcon.Information, 5000)
-            # filename1 = 'data/01.wav'
-            # winsound.PlaySound(filename1, winsound.SND_FILENAME)
-            return response.json().get("access_token")
-        else:
+        try:
+            response = requests.post(url, data=payload)
+            if response.status_code == 200:
+                # time.sleep(3)
+                # tray_icon.showMessage("Уведомление", "Токен получен", QSystemTrayIcon.Information, 5000)
+                # filename1 = 'data/01.wav'
+                # winsound.PlaySound(filename1, winsound.SND_FILENAME)
+                return response.json().get("access_token")
+            else:
+                return None
+        except requests.exceptions.RequestException as e:
             return None
 
     def check_auth(self, access_token):
@@ -30,8 +33,11 @@ class Auth:
             'accept': 'application/json',
             'Authorization': f'Bearer {access_token}'
         }
-        response = requests.get(url, headers=headers)
-        if response.status_code == 200:
-            return True
-        else:
+        try:
+            response = requests.get(url, headers=headers)
+            if response.status_code == 200:
+                return True
+            else:
+                return False
+        except requests.exceptions.RequestException as e:
             return False

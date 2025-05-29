@@ -1,3 +1,4 @@
+# Обновления пока работают только для Windows
 # from Imports import *
 import time
 

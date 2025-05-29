@@ -1,4 +1,4 @@
-version = '1.0.0.1-beta'
+version = '1.0.0.2-beta'
 
 base_sql = 'data/events.db'
 

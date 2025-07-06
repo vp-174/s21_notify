@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "s21-notify"
-#define MyAppVersion "1.0.0.2-beta"
+#define MyAppVersion "1.0.0.3-beta"
 #define MyAppPublisher "Vladislav Panov"
 #define MyAppURL "https://fr-space.ru"
 #define MyAppExeName "s21-notify.exe"

@@ -8,6 +8,28 @@ import zc.lockfile
 import tempfile
 #################################
 
+class TimeWorkThread(QThread):
+    finished = Signal()
+
+    def __init__(self, event):
+        super().__init__()
+        self.event = event
+
+    def run(self):
+        self.event.timeWork()
+        self.finished.emit()
+
+class EventNotifyThread(QThread):
+    finished = Signal()
+
+    def __init__(self, event):
+        super().__init__()
+        self.event = event
+
+    def run(self):
+        self.event.eventNotify()
+        self.finished.emit()
+
 def run_updater():
     if platform.system() == "Windows":
         updater_name = 's21-updater.exe'
@@ -61,33 +83,29 @@ class S21_Notify_App(Tray):
             username, password = self.database.read_credentials_from_db()
             access_token = self.auth.get_access_token(username, password)
 
-            if self.auth.check_auth(access_token):
-                time.sleep(5)
-                self.tr.icon.showMessage("Уведомление", "Успешная авторизация", QSystemTrayIcon.Information, 5000)
+            try:
+                if self.auth.check_auth(access_token):
+                    time.sleep(5)
+                    self.tr.icon.showMessage("Уведомление", "Успешная авторизация", QSystemTrayIcon.Information, 5000)
+                    time.sleep(5)
 
-                # filename1 = 'data/01.wav'
-                # self.pl.play_wave(filename1)
+                    # Запускаем timeWork в отдельном потоке
+                    self.time_work_thread = TimeWorkThread(self.event)
+                    self.time_work_thread.start()
 
-                time.sleep(5)
-                self.event.timeWork()
-                timer2 = QTimer()
-                timer2.timeout.connect(lambda: self.event.timeWork())
-                timer2.start(get_event_period * 60000)
+                    timer2 = QTimer()
+                    timer2.timeout.connect(lambda: self.time_work_thread.start())
+                    timer2.start(get_event_period * 60000)
 
-                time.sleep(5)
-                self.event.eventNotify()
-                timer3 = QTimer()
-                timer3.timeout.connect(lambda: self.event.eventNotify())
-                timer3.start(1 * 60000) # 1 min
+                    # Запускаем eventNotify в отдельном потоке
+                    self.event_notify_thread = EventNotifyThread(self.event)
+                    self.event_notify_thread.start()
 
-                # time.sleep(5)
-                # timer4 = QTimer()
-                # timer4.timeout.connect(lambda: self.updater.start())
-                # # timer4.start(6 * 60 * 6000) # 6 hours
-                # timer4.start(3 * 60000)  # 3 min
-
-            else:
-                self.tr.icon.showMessage("Уведомление", "Ошибка авторизации", QSystemTrayIcon.Information, 5000)
+                    timer3 = QTimer()
+                    timer3.timeout.connect(lambda: self.event_notify_thread.start())
+                    timer3.start(1 * 60000)  # 1 min
+            except KeyboardInterrupt:
+                print("Выход из программы.")
 
         sys.exit(self.app.exec())
 
@@ -100,7 +118,6 @@ class S21_Notify_App(Tray):
 
         # Создаем виджет для диалога
         dialog_widget = QWidget()
-
 
         layout = QVBoxLayout(dialog_widget)
 

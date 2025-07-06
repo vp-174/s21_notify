@@ -1,14 +1,19 @@
 from Imports import *
 from Audio import *
 
+class EventSignals(QObject):
+    show_notification = Signal(str, str, int)
+
 class Event(Tray):
-    '''Класс событий'''
     def __init__(self, tr):
+        super().__init__(tr.icon)
+        self.signals = EventSignals()
         self.tr = tr
         self.mute = 0
         self.database = Database()
         self.auth = Auth()
         self.pl = Audio()
+        self.signals.show_notification.connect(self._show_event_notify)
 
     def is_gnu(self):
         return platform.system() == "Linux"
@@ -75,7 +80,8 @@ class Event(Tray):
         date_time_obj2 += timedelta(hours=5)
         date_end = date_time_obj2.strftime('%H:%M')
 
-        self.show_event_notify("".upper(), f"{name}\n\n{loc}\n{date_start} - {date_end}", event['id'])
+        # Используем сигнал для показа уведомления
+        self.signals.show_notification.emit("".upper(), f"{name}\n\n{loc}\n{date_start} - {date_end}", event['id'])
 
     def string_trim(self, sentence):
         '''Обработка сообщений события. Вывод определенного числа символов и добавление трех точек в конце'''
@@ -98,7 +104,7 @@ class Event(Tray):
         return new_sentence
 
     def show_event_notify(self, message, message2, event_id):
-        '''Вывод окна события'''
+        '''Вывод окна события (теперь вызывается через сигнал)'''
         try:
             if self.is_win_pl():
                 self.pl.play_wave('data/02.wav')
@@ -106,28 +112,59 @@ class Event(Tray):
                 self.pl.play_wave_gnu('data/02.wav')
         except Exception as e:
             pass
-        url = 'https://edu.21-school.ru'
-        dialog = CustomDialog(message, message2, url, event_id)  # Передаем event_id
-        dialog.setFixedSize(422, 315)
-        dialog.setWindowFlags(dialog.windowFlags() | Qt.WindowStaysOnTopHint)  # Установка флага WindowStaysOnTopHint
 
-        # Получение размеров экрана
+        # GUI операции должны выполняться в главном потоке
+        QTimer.singleShot(0, lambda: self._show_dialog(message, message2, event_id))
+
+    def _show_event_notify(self, message, message2, event_id):
+        '''Вывод окна события (вызывается через сигнал в главном потоке)'''
+        # Воспроизведение звука теперь не блокирует GUI
+        try:
+            if self.is_win_pl():
+                self.pl.play_wave('data/02.wav')
+            if self.is_gnu():
+                self.pl.play_wave_gnu('data/02.wav')
+        except Exception as e:
+            print(f"Ошибка воспроизведения звука: {e}")
+
+        url = 'https://edu.21-school.ru'
+        dialog = CustomDialog(message, message2, url, event_id)
+        dialog.setFixedSize(422, 315)
+        dialog.setWindowFlags(dialog.windowFlags() | Qt.WindowStaysOnTopHint)
+
         screen = QApplication.primaryScreen()
         screen_geometry = screen.geometry()
         screen_width = screen_geometry.width()
         screen_height = screen_geometry.height()
 
-        # Получение размеров окна
         dialog_width = dialog.width()
         dialog_height = dialog.height()
 
-        # Вычисление позиции для центрирования окна
         x = (screen_width - dialog_width) // 2
         y = (screen_height - dialog_height) // 2
 
-        # Установка позиции окна
         dialog.move(x, y)
+        dialog.exec()
 
+    def _show_dialog(self, message, message2, event_id):
+        '''Фактическое создание и показ диалога'''
+        url = 'https://edu.21-school.ru'
+        dialog = CustomDialog(message, message2, url, event_id)
+        dialog.setFixedSize(422, 315)
+        dialog.setWindowFlags(dialog.windowFlags() | Qt.WindowStaysOnTopHint)
+
+        screen = QApplication.primaryScreen()
+        screen_geometry = screen.geometry()
+        screen_width = screen_geometry.width()
+        screen_height = screen_geometry.height()
+
+        dialog_width = dialog.width()
+        dialog_height = dialog.height()
+
+        x = (screen_width - dialog_width) // 2
+        y = (screen_height - dialog_height) // 2
+
+        dialog.move(x, y)
         dialog.exec()
 
     def timeWork(self):
@@ -156,27 +193,39 @@ class Event(Tray):
 
     def eventNotify(self):
         '''Показ окна события по времени (+ режим тишины)'''
-        notify_time = 1
+        notify_time = 1  # За сколько минут до события показывать уведомление
         now = datetime.now()
-        # print(now)
         now += timedelta(hours=0)
-        nowHour = '{:02d}'.format(now.hour)  # Форматируем часы с ведущими нулями
-        nowMin = '{:02d}'.format(now.minute)  # Форматируем минуты с ведущими нулями
-        timeCheck = int(str(nowHour) + str(nowMin))  # Объединяем часы и минуты в одно число
-        # print(f"mute: {mute}")
-        # print(f"timeCheck: {timeCheck}")
-        try:
-            if ((self.database.get_start_event_time(now)[0] - timeCheck) <= notify_time and (self.database.get_start_event_time(now)[0] - timeCheck) > -1):
-                self.tr.icon.showMessage("Напоминание","Ближайшее событие сейчас уже начнётся", QSystemTrayIcon.Information, 25000)
+        nowHour = '{:02d}'.format(now.hour)
+        nowMin = '{:02d}'.format(now.minute)
+        timeCheck = int(str(nowHour) + str(nowMin))
 
-                try:
-                    if self.is_win_pl():
-                        self.pl.play_wave('data/01.wav')
-                    if self.is_gnu():
-                        self.pl.play_wave_gnu('data/01.wav')
-                except Exception as e:
-                    pass
-                # print("event start 5mins")
+        try:
+            # Получаем время ближайшего события
+            event_time_data = self.database.get_start_event_time(now)
+
+            # Проверяем, что данные получены и список не пустой
+            if event_time_data and len(event_time_data) > 0:
+                event_time = event_time_data[0]
+
+                # Проверяем условие для показа уведомления
+                if (event_time - timeCheck) <= notify_time and (event_time - timeCheck) > -1:
+                    # Показываем уведомление в системном трее
+                    self.tr.icon.showMessage(
+                        "Напоминание",
+                        "Ближайшее событие сейчас уже начнётся",
+                        QSystemTrayIcon.Information,
+                        25000
+                    )
+
+                    # Воспроизводим звук в отдельном потоке
+                    try:
+                        if self.is_win_pl():
+                            self.pl.play_wave('data/01.wav')
+                        elif self.is_gnu():
+                            self.pl.play_wave_gnu('data/01.wav')
+                    except Exception as e:
+                        print(f"Ошибка воспроизведения звука: {e}")
 
         except Exception as e:
-            pass
+            print(f"Ошибка в eventNotify: {e}")

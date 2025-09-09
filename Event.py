@@ -35,7 +35,7 @@ class Event(Tray):
         to_date = now + relativedelta(months=3)
         from_str = from_date.strftime('%Y-%m-%dT%H:%M:%SZ')
         to_str = to_date.strftime('%Y-%m-%dT%H:%M:%SZ')
-        url = f'https://edu-api.21-school.ru/services/21-school/api/v1/events?from={from_str}&to={to_str}&limit=50&offset=0'
+        url = f'https://platform.21-school.ru/services/21-school/api/v1/events?from={from_str}&to={to_str}&limit=50&offset=0'
         headers = {
             'accept': 'application/json',
             'Authorization': f'Bearer {access_token}'

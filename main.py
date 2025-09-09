@@ -1,5 +1,5 @@
 # build/1003-beta ## 6/07/2025 19:15
-
+# изменен url для api ## 9/9/2025 13:53
 from Imports import *
 from Audio import *
 
@@ -164,7 +164,7 @@ class S21_Notify_App(Tray):
         login_button.setStyleSheet(login_style)
         exit_button.setStyleSheet(login_style)
 
-        username_input.setPlaceholderText("Логин (edu.21-school.ru)")
+        username_input.setPlaceholderText("Логин (platform.21-school.ru)")
         password_input.setPlaceholderText("Пароль")
 
         def authenticate():

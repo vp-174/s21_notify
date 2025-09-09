@@ -1,5 +1,6 @@
 # Обновления пока работают только для Windows
 # from Imports import *
+# замена url с http -> https
 import time
 
 from config import *
@@ -42,7 +43,7 @@ class Updater:
     def load_update_info(self):
         try:
             time.sleep(10)
-            response = requests.get('http://fr-space.ru/update_info.json')
+            response = requests.get('https://fr-space.ru/update_info.json')
             response.raise_for_status()  # Проверка на ошибки HTTP
             return response.json()
         except requests.RequestException as e:

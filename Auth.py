@@ -8,13 +8,16 @@ class Auth:
         '''Получение токена'''
         url = 'https://auth.sberclass.ru/auth/realms/EduPowerKeycloak/protocol/openid-connect/token'
         payload = {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "client_id": "s21-open-api",
             "username": username,
             "password": password,
-            "grant_type": "password",
-            "client_id": "s21-open-api"
+            "grant_type": "password"
         }
+        print(username, password)
         try:
             response = requests.post(url, data=payload)
+            print(response.text)
             if response.status_code == 200:
                 # time.sleep(3)
                 # tray_icon.showMessage("Уведомление", "Токен получен", QSystemTrayIcon.Information, 5000)
@@ -28,7 +31,7 @@ class Auth:
 
     def check_auth(self, access_token):
         '''Проверка авторизации'''
-        url = 'https://edu-api.21-school.ru/services/21-school/api/v1/events?from=2024-01-23T00%3A00%3A00Z&to=2024-01-24T00%3A00%3A00Z&type=TEST&limit=50&offset=0'
+        url = 'https://platform.21-school.ru/services/21-school/api/v1/events?from=2024-01-23T00%3A00%3A00Z&to=2024-01-24T00%3A00%3A00Z&type=TEST&limit=50&offset=0'
         headers = {
             'accept': 'application/json',
             'Authorization': f'Bearer {access_token}'

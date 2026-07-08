@@ -6,7 +6,7 @@ class Auth:
     #     pass
     def get_access_token(self, username, password):
         '''Получение токена'''
-        url = 'https://auth.sberclass.ru/auth/realms/EduPowerKeycloak/protocol/openid-connect/token'
+        url = 'https://auth.21-school.ru/auth/realms/EduPowerKeycloak/protocol/openid-connect/token'
         payload = {
             "Content-Type": "application/x-www-form-urlencoded",
             "client_id": "s21-open-api",

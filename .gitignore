@@ -8,6 +8,7 @@
 
 *.exe
 *.ini
+*.bmp
 *.spec
 *.manifest
 
@@ -16,5 +17,8 @@ calendar_footage.py
 
 install.txt
 deploy.txt
+
+*s21
+s21-notify-version.txt
 s21-updater-version.txt
 update_info.json

@@ -1,4 +1,5 @@
 from Imports import *
+from lang import _
 
 class CustomDialog(QDialog):
     '''Класс окна события'''
@@ -79,9 +80,9 @@ class CustomDialog(QDialog):
         message_label2.setAlignment(Qt.AlignmentFlag.AlignCenter)
         message_label.setStyleSheet(msg_style)
         message_label2.setStyleSheet("font-size: 14px; margin-bottom: 20px; font-weight: 500;")
-        ok_button = QPushButton("Пойду")
-        no_button = QPushButton("Не пойду")
-        cancel_button = QPushButton("Решу позже")
+        ok_button = QPushButton(_('event_going'))
+        no_button = QPushButton(_('event_not_going'))
+        cancel_button = QPushButton(_('event_later'))
 
         # Установка objectName для кнопок
         ok_button.setObjectName("ok_button")
@@ -176,8 +177,8 @@ class DonateDialog(QDialog):
             }
         """
         message_label.setAlignment(Qt.AlignmentFlag.AlignLeft)
-        ok_button = QPushButton("Написать")
-        cancel_button = QPushButton("Закрыть")
+        ok_button = QPushButton(_('donate_write'))
+        cancel_button = QPushButton(_('donate_close'))
 
         # Установка objectName
         image_label.setObjectName("qrcode")
@@ -200,6 +201,62 @@ class DonateDialog(QDialog):
     def copy_mail_to_clipboard(self, text):
         '''Копирование email в бумфер обмена'''
         pyperclip.copy(text)
-        self.classTray.icon.showMessage("Уведомление", "E-mail скопирован в буфер обмена", QSystemTrayIcon.Information, 5000)
+        self.classTray.icon.showMessage(_('notification'), _('email_copied'), QSystemTrayIcon.Information, 5000)
         # self.show_message("Уведомление", "E-mail скопирован в буфер обмена")
+
+class SettingsDialog(QDialog):
+    def __init__(self, database):
+        super().__init__()
+        self.database = database
+        self.setWindowTitle("Настройки")
+        self.setFixedSize(280, 160)
+        self.setWindowFlags(Qt.FramelessWindowHint)
+        self.setAttribute(Qt.WA_TranslucentBackground)
+
+        wrapper = QWidget()
+        layout = QVBoxLayout(wrapper)
+
+        gmt_label = QLabel("Часовой пояс")
+        self.gmt_combo = QComboBox()
+        for offset in range(-12, 15):
+            self.gmt_combo.addItem(f"GMT{offset:+d}", offset)
+
+        current_gmt = self.database.gmt
+        idx = self.gmt_combo.findData(current_gmt)
+        if idx >= 0:
+            self.gmt_combo.setCurrentIndex(idx)
+
+        save_btn = QPushButton("Сохранить")
+        save_btn.clicked.connect(self.save_settings)
+        close_btn = QPushButton("Закрыть")
+        close_btn.clicked.connect(self.close)
+
+        layout.addWidget(gmt_label)
+        layout.addWidget(self.gmt_combo)
+        layout.addWidget(save_btn)
+        layout.addWidget(close_btn)
+
+        style = '''
+            QWidget { background-color: #f0f0f0; border-radius: 12px; }
+            QLabel { font-size: 14px; padding: 4px; }
+            QComboBox { font-size: 14px; padding: 4px; border: 1px solid #ccc; border-radius: 6px; }
+            QPushButton { font-size: 14px; padding: 6px; background-color: #4CAF50; color: white; border-radius: 8px; }
+            QPushButton:hover { background-color: #70a3d2; }
+        '''
+        wrapper.setStyleSheet(style)
+
+        self.setLayout(QVBoxLayout())
+        self.layout().addWidget(wrapper)
+
+        screen = QApplication.primaryScreen().geometry()
+        self.move(
+            (screen.width() - self.width()) // 2,
+            (screen.height() - self.height()) // 2
+        )
+
+    def save_settings(self):
+        gmt = self.gmt_combo.currentData()
+        self.database.set_setting('gmt', gmt)
+        self.database.gmt = gmt
+        self.close()
 

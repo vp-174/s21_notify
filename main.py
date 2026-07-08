@@ -1,7 +1,11 @@
 # build/1003-beta ## 6/07/2025 19:15
 # изменен url для api ## 9/9/2025 13:53
+
+# build/1004-release ## 8/07/2026 22:21
+# Активированы и добавлены настройки в трей
 from Imports import *
 from Audio import *
+from lang import _, set_lang
 
 ################# LOCK ##########
 import zc.lockfile
@@ -9,26 +13,34 @@ import tempfile
 #################################
 
 class TimeWorkThread(QThread):
-    finished = Signal()
-
-    def __init__(self, event):
+    def __init__(self, event, interval):
         super().__init__()
         self.event = event
+        self.interval = interval
+        self._running = True
 
     def run(self):
-        self.event.timeWork()
-        self.finished.emit()
+        while self._running:
+            self.event.timeWork()
+            time.sleep(self.interval)
+
+    def stop(self):
+        self._running = False
 
 class EventNotifyThread(QThread):
-    finished = Signal()
-
-    def __init__(self, event):
+    def __init__(self, event, interval):
         super().__init__()
         self.event = event
+        self.interval = interval
+        self._running = True
 
     def run(self):
-        self.event.eventNotify()
-        self.finished.emit()
+        while self._running:
+            self.event.eventNotify()
+            time.sleep(self.interval)
+
+    def stop(self):
+        self._running = False
 
 def run_updater():
     if platform.system() == "Windows":
@@ -64,11 +76,13 @@ class S21_Notify_App(Tray):
         self.tray_icon = QSystemTrayIcon(QIcon("data/icon.png"), self.app)
         self.tray_icon.setToolTip(f"S21 Notify {version}\nУведомление о новых событиях")
 
-        self.encription = Encryption()
+        self.encryption = Encryption()
         self.database = Database()
         self.auth = Auth()
         self.tr = Tray(self.tray_icon)
-        self.event = Event(self.tr)
+        self.event = Event(self.tr, self.database)
+
+        set_lang(self.database.lang)
         # self.updater = Updater(version)
 
     def run(self):
@@ -77,35 +91,20 @@ class S21_Notify_App(Tray):
         while not self.database.read_credentials_from_db()[0]:
             self.show_login_window()
 
-        if not self.database.read_credentials_from_db()[0]:
-            self.show_login_window()
-        else:
-            username, password = self.database.read_credentials_from_db()
-            access_token = self.auth.get_access_token(username, password)
+        username, password = self.database.read_credentials_from_db()
+        access_token = self.auth.get_access_token(username, password)
 
-            try:
-                if self.auth.check_auth(access_token):
-                    time.sleep(5)
-                    self.tr.icon.showMessage("Уведомление", "Успешная авторизация", QSystemTrayIcon.Information, 5000)
-                    time.sleep(5)
+        if self.auth.check_auth(access_token):
+            self.tr.icon.showMessage(
+                _('notification'), _('auth_success'),
+                QSystemTrayIcon.Information, 5000
+            )
 
-                    # Запускаем timeWork в отдельном потоке
-                    self.time_work_thread = TimeWorkThread(self.event)
-                    self.time_work_thread.start()
+            self.time_work_thread = TimeWorkThread(self.event, get_event_period * 60)
+            self.time_work_thread.start()
 
-                    timer2 = QTimer()
-                    timer2.timeout.connect(lambda: self.time_work_thread.start())
-                    timer2.start(get_event_period * 60000)
-
-                    # Запускаем eventNotify в отдельном потоке
-                    self.event_notify_thread = EventNotifyThread(self.event)
-                    self.event_notify_thread.start()
-
-                    timer3 = QTimer()
-                    timer3.timeout.connect(lambda: self.event_notify_thread.start())
-                    timer3.start(1 * 60000)  # 1 min
-            except KeyboardInterrupt:
-                print("Выход из программы.")
+            self.event_notify_thread = EventNotifyThread(self.event, 60)
+            self.event_notify_thread.start()
 
         sys.exit(self.app.exec())
 
@@ -124,8 +123,8 @@ class S21_Notify_App(Tray):
         username_input = QLineEdit()
         password_input = QLineEdit()
         password_input.setEchoMode(QLineEdit.Password)
-        login_button = QPushButton("Авторизация")
-        exit_button = QPushButton("Выйти")
+        login_button = QPushButton(_('auth_btn'))
+        exit_button = QPushButton(_('exit_btn'))
 
         login_style = '''
             QWidget {
@@ -164,8 +163,8 @@ class S21_Notify_App(Tray):
         login_button.setStyleSheet(login_style)
         exit_button.setStyleSheet(login_style)
 
-        username_input.setPlaceholderText("Логин (platform.21-school.ru)")
-        password_input.setPlaceholderText("Пароль")
+        username_input.setPlaceholderText(_('login_title'))
+        password_input.setPlaceholderText(_('password_title'))
 
         def authenticate():
             username = username_input.text()
@@ -218,15 +217,17 @@ class S21_Notify_App(Tray):
         sys.exit()
 
     def settings_action_func(self):
-        print("Настройки приложения")
+        dialog = SettingsDialog(self.database)
+        dialog.exec()
 
     def show_donate(self):
         '''Вывод окна доната'''
-        self.url = 'https://rocketchat-student.21-school.ru/direct/66aa06b74e1904d388492898?msg=wetPQemmMd7LZa8ak'
-        self.message2 = "Дорогой пир!\nЯ буду безумно рад\nтвоей благодарности\nна кофе с печеньками.\n\nкарта (Сбербанк)\n2202 2032 1022 6652"
+        # self.url = 'https://rocketchat-student.21-school.ru/direct/66aa06b74e1904d388492898?msg=wetPQemmMd7LZa8ak'
+        self.url=''
+        self.message2 = "Дорогой пир!\nЯ буду безумно рад\nтвоей благодарности\nна кофе с печеньками.\n\nСканируй qr камерой\nчерез СберБанк"
         self.dialog = DonateDialog(self.message2, self.url, self.tr)
         self.dialog.setFixedSize(422, 315)
-        self.dialog.setWindowFlags(self.dialog.windowFlags() | Qt.WindowStaysOnTopHint)  # Установка флага WindowStaysOnTopHint
+        self.dialog.setWindowFlags(self.dialog.windowFlags() | Qt.WindowStaysOnTopHint)
 
         # Получение размеров экрана
         screen = QApplication.primaryScreen()

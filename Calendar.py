@@ -1,4 +1,5 @@
 from Imports import *
+from lang import _
 
 
 class Calendar(QDialog):
@@ -105,7 +106,7 @@ class Calendar(QDialog):
         layout.addWidget(self.calendar)
         layout.addWidget(self.event_display)
 
-        self.button = QPushButton("Закрыть")
+        self.button = QPushButton(_('calendar_close'))
         self.button.setObjectName("btn_close")
         self.button.setStyleSheet("""
             QPushButton#btn_close {
@@ -165,7 +166,7 @@ class Calendar(QDialog):
             self.event_display.setHtml(events_with_links)  # Устанавливаем HTML-контент
             self.event_display.setOpenExternalLinks(True)
         else:
-            self.event_display.setText("Событий нет")
+            self.event_display.setText(_('no_events'))
 
     def make_links_clickable(self, text):
         # text2 = text[:-1]

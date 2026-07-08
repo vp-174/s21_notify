@@ -1,11 +1,16 @@
-from Imports import *
+import base64
+import hashlib
+from cryptography.fernet import Fernet
+
+
 class Encryption:
-    def __init__(self, key="s21"):
-        self.key = key
+    _KEY = base64.urlsafe_b64encode(hashlib.sha256(b's21').digest())
+
+    def __init__(self):
+        self.cipher = Fernet(self._KEY)
 
     def encrypt(self, password):
-        return base64.b64encode((password + self.key).encode()).decode()
+        return self.cipher.encrypt(password.encode()).decode()
 
     def decrypt(self, encrypted_password):
-        decrypted_password = base64.b64decode(encrypted_password.encode()).decode()
-        return decrypted_password.replace(self.key, '')
+        return self.cipher.decrypt(encrypted_password.encode()).decode()

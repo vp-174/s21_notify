@@ -117,13 +117,12 @@ class UpdateThread(QThread):
                     print(f'Ошибка при распаковке файла: {e}')
             elif step == 'Остановка программы':
                 if platform.system() == "Windows":
-                    for proc in psutil.process_iter():
+                    for proc in psutil.process_iter(['name']):
                         try:
-                            if proc.name() == 's21-notify.exe':
+                            if proc.info['name'] == 's21-notify.exe':
                                 proc.terminate()
                         except Exception as e:
-                            print(f'Ошибка остановки s 21-notify.exe: {e}')
-                            proc.terminate()
+                            print(f'Ошибка остановки s21-notify.exe: {e}')
                 elif platform.system() == "Linux":
                     os.system('pkill s21-notify')
             elif step == 'Копирование файла':

@@ -1,26 +1,28 @@
 from Imports import *
 from Audio import *
+from lang import _
 
 class EventSignals(QObject):
     show_notification = Signal(str, str, int)
 
-class Event(Tray):
-    MAX_EVENTS_PER_ROW = 3  # Максимум 3 события в строке
+class Event:
+    MAX_EVENTS_PER_ROW = 3
     WINDOW_WIDTH = 422
     WINDOW_HEIGHT = 315
-    WINDOW_MARGIN = 12  # Отступ между окнами
+    WINDOW_MARGIN = 12
 
-    def __init__(self, tr):
-        super().__init__(tr.icon)
+    def __init__(self, tr, database=None):
         self.signals = EventSignals()
         self.tr = tr
+        self.mutex = QMutex()
         self.mute = 0
-        self.database = Database()
+        self.database = database or Database()
         self.auth = Auth()
         self.pl = Audio()
         self.signals.show_notification.connect(self.show_event_notify)
-        self.active_windows = []  # Список активных окон
-        self.last_event_time = None  # Время последнего показанного события
+        self.active_windows = []
+        self.open_event_ids = set()
+        self.last_event_time = None
 
     def is_gnu(self):
         return platform.system() == "Linux"
@@ -46,16 +48,16 @@ class Event(Tray):
 
             if events:
                 for event in events:
-                    # Проверяем, существует ли событие в базе данных
-                    if not self.database.event_exists(event['id']):  # уникальный идентификатор 'id'
-                        # Сохраните событие в базу данных
+                    event_id = event['id']
+                    if event_id in self.open_event_ids:
+                        continue
+
+                    if not self.database.event_exists(event_id):
                         self.database.save_event_to_db(event)
-                        # Показать событие
                         self.format_event(event)
                         time.sleep(5)
 
-                    elif self.database.event_exists(event['id']) and self.database.get_status(event['id']) == 0:
-                        # Показать событие
+                    elif self.database.get_status(event_id) == 0:
                         self.format_event(event)
                         time.sleep(5)
             return True
@@ -71,13 +73,14 @@ class Event(Tray):
             desc = self.string_trim(event['description'])
         loc = self.string_trim(event['location'])
 
+        gmt = self.database.gmt
         date_start = event['startDateTime']
         date_time_obj1 = datetime.strptime(date_start, '%Y-%m-%dT%H:%M:%SZ')
-        date_time_obj1 += timedelta(hours=5)
+        date_time_obj1 += timedelta(hours=gmt)
         date_start = date_time_obj1.strftime('%d/%m/%Y %H:%M')
         date_end = event['endDateTime']
         date_time_obj2 = datetime.strptime(date_end, '%Y-%m-%dT%H:%M:%SZ')
-        date_time_obj2 += timedelta(hours=5)
+        date_time_obj2 += timedelta(hours=gmt)
         date_end = date_time_obj2.strftime('%H:%M')
 
         # Используем сигнал для показа уведомления
@@ -136,7 +139,8 @@ class Event(Tray):
         )
         dialog.setAttribute(Qt.WA_ShowWithoutActivating)
 
-        # Добавляем обработчики
+        self.open_event_ids.add(event_id)
+
         dialog.finished.connect(lambda: self.remove_window(dialog))
         self.active_windows.append(dialog)
 
@@ -149,10 +153,9 @@ class Event(Tray):
         dialog.activateWindow()
 
     def remove_window(self, window):
-        '''Удаляем закрытое окно из списка активных'''
+        self.open_event_ids.discard(window.event_id)
         if window in self.active_windows:
             self.active_windows.remove(window)
-        # После закрытия окна перепозиционируем оставшиеся
         self.arrange_windows()
 
     def arrange_windows(self):
@@ -229,40 +232,49 @@ class Event(Tray):
         dialog.exec()
 
     def timeWork(self):
-        '''Показ окна события по времени (+ режим тишины)'''
         now = datetime.now()
-        now += timedelta(hours=0)
-        nowHour = '{:02d}'.format(now.hour)  # Форматируем часы с ведущими нулями
-        nowMin = '{:02d}'.format(now.minute)  # Форматируем минуты с ведущими нулями
-        timeCheck = int(str(nowHour) + str(nowMin))  # Объединяем часы и минуты в одно число
-        # print(f"mute: {mute}")
-        #print(f"timeCheck: {timeCheck}")
-        if (timeCheck >= 900 and timeCheck <= 2300) or self.mute == -1:
-            self.mute = 0
-            username, password = self.database.read_credentials_from_db()
-            access_token = self.auth.get_access_token(username, password)
-            self.get_event(access_token)
-        else:
+        nowHour = '{:02d}'.format(now.hour)
+        nowMin = '{:02d}'.format(now.minute)
+        timeCheck = int(str(nowHour) + str(nowMin))
+
+        mute_start_val = self.database.mute_start * 100
+        mute_end_val = self.database.mute_end * 100
+
+        self.mutex.lock()
+        try:
+            if (timeCheck >= mute_end_val and timeCheck <= mute_start_val) or self.mute == -1:
+                self.mute = 0
+                self.mutex.unlock()
+                username, password = self.database.read_credentials_from_db()
+                access_token = self.auth.get_access_token(username, password)
+                self.get_event(access_token)
+                return
+
             self.mute += 1
-            # print(mute)
-        if self.mute == 1:
-            self.tr.icon.showMessage("Включен режим тишины", "Уведомления о новых событиях\n отключены до 9:00 утра", QSystemTrayIcon.Information, 10000)
-        elif self.mute > 1:
-            #print(f"[ MUTE MODE ]")
-            if timeCheck >= 859 and timeCheck <= 1100:
-                self.mute = -1
+
+            if self.mute == 1:
+                self.tr.icon.showMessage(
+                    _('mute_title'),
+                    _('mute_msg').format(mute_end=self.database.mute_end),
+                    QSystemTrayIcon.Information, 10000
+                )
+            elif self.mute > 1:
+                if timeCheck >= mute_end_val - 41 and timeCheck <= mute_end_val + 200:
+                    self.mute = -1
+        finally:
+            try:
+                self.mutex.unlock()
+            except RuntimeError:
+                pass
 
     def eventNotify(self):
-        '''Показ окна события по времени (+ режим тишины)'''
-        notify_time = 1  # За сколько минут до события показывать уведомление
+        notify_time = self.database.notify_time
         now = datetime.now()
-        now += timedelta(hours=0)
         nowHour = '{:02d}'.format(now.hour)
         nowMin = '{:02d}'.format(now.minute)
         timeCheck = int(str(nowHour) + str(nowMin))
 
         try:
-            # Получаем время ближайшего события
             event_time_data = self.database.get_start_event_time(now)
 
             # Проверяем, что данные получены и список не пустой
@@ -273,8 +285,8 @@ class Event(Tray):
                 if (event_time - timeCheck) <= notify_time and (event_time - timeCheck) > -1:
                     # Показываем уведомление в системном трее
                     self.tr.icon.showMessage(
-                        "Напоминание",
-                        "Ближайшее событие сейчас уже начнётся",
+                        _('reminder'),
+                        _('reminder_msg'),
                         QSystemTrayIcon.Information,
                         25000
                     )

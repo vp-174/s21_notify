@@ -14,10 +14,8 @@ class Auth:
             "password": password,
             "grant_type": "password"
         }
-        print(username, password)
         try:
             response = requests.post(url, data=payload)
-            print(response.text)
             if response.status_code == 200:
                 # time.sleep(3)
                 # tray_icon.showMessage("Уведомление", "Токен получен", QSystemTrayIcon.Information, 5000)

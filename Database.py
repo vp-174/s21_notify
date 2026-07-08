@@ -4,8 +4,12 @@ class Database:
     def __init__(self, db_name=base_sql, encr=Encryption()):
         self.db_name = db_name
         self.encr = encr
-        self.gmt = 5 # корректировка времени
         self.create_database()
+        self.gmt = self.get_setting('gmt', 5)
+        self.lang = self.get_setting('lang', 'ru')
+        self.mute_start = self.get_setting('mute_start', 23)
+        self.mute_end = self.get_setting('mute_end', 9)
+        self.notify_time = self.get_setting('notify_time', 1)
 
     def connect(self):
         try:
@@ -47,9 +51,10 @@ class Database:
                     val INTEGER DEFAULT 0
                 )        
             ''')
-            # Вставка значений в таблицу settings
-            c.execute('INSERT OR IGNORE INTO settings (name, val) VALUES (?, ?)', ('sound', 1))
-            c.execute('INSERT OR IGNORE INTO settings (name, val) VALUES (?, ?)', ('push', 1))
+            defaults = [('sound', 1), ('push', 1), ('gmt', 5), ('lang', 'ru'),
+                         ('mute_start', 23), ('mute_end', 9), ('notify_time', 1)]
+            for name, val in defaults:
+                c.execute('INSERT OR IGNORE INTO settings (name, val) VALUES (?, ?)', (name, val))
             conn.commit()
         except Exception as e:
             print(f"Ошибка при создании базы данных: {e}")
@@ -183,8 +188,8 @@ class Database:
         conn = self.connect()
         c = conn.cursor()
         # Получаем сегодняшнюю дату с текущим временем, но с нулями для секунд и микросекунд
-        now = datetime.now() - timedelta(hours=self.gmt)
-        today_iso = now.replace(second=0, microsecond=0).isoformat() + 'Z'  # Приводим к формату ISO 8601 с указанием часового пояса
+        now = datetime.utcnow()
+        today_iso = now.replace(second=0, microsecond=0).isoformat() + 'Z'
         # print(today_iso)
 
         # Запрос всех уникальных дат событий начиная с сегодняшней даты
@@ -264,6 +269,24 @@ class Database:
         if result:
             return result[0]  # Возвращаем значение viewed
         return None  # Если событие не найдено
+
+    def get_setting(self, name, default=None):
+        conn = self.connect()
+        c = conn.cursor()
+        c.execute('SELECT val FROM settings WHERE name = ?', (name,))
+        row = c.fetchone()
+        conn.close()
+        return row[0] if row else default
+
+    def set_setting(self, name, value):
+        conn = self.connect()
+        c = conn.cursor()
+        c.execute('''
+            INSERT INTO settings (name, val) VALUES (?, ?)
+            ON CONFLICT(name) DO UPDATE SET val = excluded.val
+        ''', (name, value))
+        conn.commit()
+        conn.close()
 
     def format_time(self, time_str):
         '''Форматирование времени из формата ISO в нужный формат с корректировкой на +5 часов'''

@@ -1,5 +1,5 @@
 # конфиг
-from config import *
+from config import version, base_sql, get_event_period
 
 # модули
 import sys

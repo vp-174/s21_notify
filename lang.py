@@ -29,6 +29,10 @@ STRINGS = {
         'end_hour': 'Конец',
         'reminder_setting': 'Напоминание',
         'minutes': 'мин',
+        'login_title': 'Логин',
+        'password_title': 'Пароль',
+        'auth_btn': 'Войти',
+        'exit_btn': 'Выход',
     },
     'en': {
         'calendar': 'Event Calendar',
@@ -58,6 +62,10 @@ STRINGS = {
         'end_hour': 'End',
         'reminder_setting': 'Reminder',
         'minutes': 'min',
+        'login_title': 'Login',
+        'password_title': 'Password',
+        'auth_btn': 'Sign in',
+        'exit_btn': 'Exit',
     },
 }
 

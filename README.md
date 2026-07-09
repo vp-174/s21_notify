@@ -15,6 +15,21 @@
 
 ## Скриншоты
 
+### Windows 10
+
 ![](doc/screen01.png)
 ![](doc/screen02.png)
 ![](doc/screen03.png)
+
+### Linux Mint 21.3
+
+![](doc/screen04.png)
+
+### Ubuntu 26.04
+
+![](doc/screen05.png)
+![](doc/screen06.png)
+
+### Xubuntu 26.04
+
+![](doc/screen07.png)

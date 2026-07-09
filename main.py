@@ -6,6 +6,7 @@
 from Imports import *
 from Audio import *
 from lang import _, set_lang
+from config import data_path
 
 ################# LOCK ##########
 import zc.lockfile
@@ -69,11 +70,11 @@ class S21_Notify_App(Tray):
     def __init__(self):
         # self.version = "build/oop/0001"
         self.app = QApplication(sys.argv)
-        self.app_icon = QIcon('data/icon.ico')
+        self.app_icon = QIcon(data_path('icon.ico'))
         self.app.setWindowIcon(self.app_icon)
         self.app.setQuitOnLastWindowClosed(False)
 
-        self.tray_icon = QSystemTrayIcon(QIcon("data/icon.png"), self.app)
+        self.tray_icon = QSystemTrayIcon(QIcon(data_path('icon.png')), self.app)
         self.tray_icon.setToolTip(f"S21 Notify {version}\nУведомление о новых событиях")
 
         self.encryption = Encryption()
@@ -284,7 +285,7 @@ def main():
         # print("Программа запущена. Нажмите Ctrl+C для выхода.")
 
         # Запускаем обновляющее приложение
-        run_updater()
+        #run_updater()
 
         # Основной цикл программы
         app = S21_Notify_App()

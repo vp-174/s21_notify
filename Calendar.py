@@ -1,5 +1,6 @@
 from Imports import *
 from lang import _
+from config import data_path
 
 
 class Calendar(QDialog):
@@ -22,62 +23,62 @@ class Calendar(QDialog):
         self.calendar.setObjectName("calendar")
 
         # Устанавливаем стиль для календаря
-        self.calendar.setStyleSheet("""
-            QCalendarWidget {
+        self.calendar.setStyleSheet(f"""
+            QCalendarWidget {{
                 background-color: transparent;
-            }
-            #calendar QWidget {
+            }}
+            #calendar QWidget {{
                 alternate-background-color: #70a3d2;
-            }
-            #qt_calendar_navigationbar {
+            }}
+            #qt_calendar_navigationbar {{
                 background-color: #70a3d2;
                 border-bottom: 2px solid transparent;
                 border-top-left-radius: 10px;
                 border-top-right-radius: 10px;
                 min-height: 32px;
                 max-height: 32px;
-            }
-            #qt_calendar_prevmonth, #qt_calendar_nextmonth {
+            }}
+            #qt_calendar_prevmonth, #qt_calendar_nextmonth {{
                 border: none;
                 qproperty-icon: none;
                 background-color: transparent;
                 padding: 5px;
-            }
-            #qt_calendar_prevmonth {
+            }}
+            #qt_calendar_prevmonth {{
                 margin-left: 15px;
-                image: url('data/arrLeft.png');
-            }
-            #qt_calendar_nextmonth {
+                image: url('{data_path('arrLeft.png')}');
+            }}
+            #qt_calendar_nextmonth {{
                 margin-right: 15px;
-                image: url('data/arrRight.png')
-            }
-            #qt_calendar_yearbutton {
+                image: url('{data_path('arrRight.png')}')
+            }}
+            #qt_calendar_yearbutton {{
                 font-size: 14px;
                 margin: 8px;
-            }
-            #qt_calendar_monthbutton {
+            }}
+            #qt_calendar_monthbutton {{
                 font-size: 12px;
-            }
-            #qt_calendar_yearedit {
+            }}
+            #qt_calendar_yearedit {{
                 font-size: 14px;
                 font-weight: bold;
                 background: transparent;
                 min-width: 53px;
                 max-height: 30px;
                 padding: 0px 3px;
-            }
-            #qt_calendar_calendarview {
+            }}
+            #qt_calendar_calendarview {{
                 border-bottom: 2px solid transparent;
                 border-bottom-left-radius: 6px;
                 border-bottom-right-radius: 6px;
-            }
-            #qt_calendar_calendarview::item:focus {
+            }}
+            #qt_calendar_calendarview::item:focus {{
                 background-color: #70a3d2;
                 border: 2px solid #fff;
                 border-radius: 5px;
                 color: #fff;
                 font-weight: bold;
-            }
+            }}
         """)
 
         self.event_display = QTextBrowser(self)

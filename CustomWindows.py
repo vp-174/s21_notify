@@ -1,5 +1,6 @@
 from Imports import *
 from lang import _
+from config import data_path
 
 class CustomDialog(QDialog):
     '''Класс окна события'''
@@ -13,7 +14,7 @@ class CustomDialog(QDialog):
         self.setAutoFillBackground(True)
         layout = QGridLayout()
         bg = QWidget()
-        bg.setStyleSheet("background-image: url('data/msg_bg.png'); background-repeat: no-repeat; background-position: 50%; padding: 0px")
+        bg.setStyleSheet(f"background-image: url('{data_path('msg_bg.png')}'); background-repeat: no-repeat; background-position: 50%; padding: 0px")
         bg.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(bg, 0, 0, 3, 3)
         message_label = QLabel(message)
@@ -125,28 +126,28 @@ class DonateDialog(QDialog):
 
         layout = QGridLayout()
         bg = QWidget()
-        bg.setStyleSheet("background-image: url('data/msg_bg.png'); background-repeat: no-repeat; background-position: 50%; padding: 0px");
+        bg.setStyleSheet(f"background-image: url('{data_path('msg_bg.png')}'); background-repeat: no-repeat; background-position: 50%; padding: 0px");
         bg.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(bg, 0, 0, 3, 3)
         image_label = QWidget()
-        image_label.setStyleSheet("background-image: url('data/donat_qr.png'); background-repeat: no-repeat; background-position: 50%; margin: 25 158 0 0");
+        image_label.setStyleSheet(f"background-image: url('{data_path('donat_qr.png')}'); background-repeat: no-repeat; background-position: 50%; margin: 25 158 0 0");
         layout.addWidget(image_label, 0, 0, 3, 3)
         message_label = QLabel(message)
         layout.addWidget(message_label, 1, 1, 1, 2, alignment=Qt.AlignmentFlag.AlignCenter)
-        msg_style = """
-            QLabel#msg {
+        msg_style = f"""
+            QLabel#msg {{
                 font-size: 13px;
                 margin: 0 33 19 0;
-            }
+            }}
 
-            QWidget#qrcode {
-                background-image: url('data/donat_qr.png');
+            QWidget#qrcode {{
+                background-image: url('{data_path('donat_qr.png')}');
                 background-repeat: no-repeat;
                 background-position: 50%; 
                 margin: 65 150 0 0;
-            }
+            }}
 
-            QPushButton#ok_button {
+            QPushButton#ok_button {{
                 min-width: 100px; 
                 max-width: 120px; 
                 background-color: #4CAF50;
@@ -155,13 +156,13 @@ class DonateDialog(QDialog):
                 padding: 6px;
                 margin-bottom: 54px;
                 margin-left: 55px;
-            }
+            }}
 
-            QPushButton#ok_button:hover {
+            QPushButton#ok_button:hover {{
                 background-color: #70a3d2;
-            }
+            }}
 
-            QPushButton#cancel_button {
+            QPushButton#cancel_button {{
                 min-width: 100px; 
                 max-width: 120px; 
                 background-color: #4CAF50;
@@ -170,11 +171,11 @@ class DonateDialog(QDialog):
                 padding: 6px;
                 margin-bottom: 54px;
                 margin-right: 55px;
-            }
+            }}
 
-            QPushButton#cancel_button:hover {
+            QPushButton#cancel_button:hover {{
                 background-color: #70a3d2;
-            }
+            }}
         """
         message_label.setAlignment(Qt.AlignmentFlag.AlignLeft)
         ok_button = QPushButton(_('donate_write'))

@@ -4,6 +4,7 @@ class Database:
     def __init__(self, db_name=base_sql, encr=Encryption()):
         self.db_name = db_name
         self.encr = encr
+        os.makedirs(os.path.dirname(self.db_name), exist_ok=True)
         self.create_database()
         self.gmt = self.get_setting('gmt', 5)
         self.lang = self.get_setting('lang', 'ru')

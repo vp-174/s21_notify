@@ -1,6 +1,7 @@
 from Imports import *
 from Audio import *
 from lang import _
+from config import data_path
 
 class EventSignals(QObject):
     show_notification = Signal(str, str, int)
@@ -110,9 +111,9 @@ class Event:
         '''Вывод окна события с позиционированием в сетке'''
         try:
             if self.is_win_pl():
-                self.pl.play_wave('data/02.wav')
+                self.pl.play_wave(data_path('02.wav'))
             if self.is_gnu():
-                self.pl.play_wave_gnu('data/02.wav')
+                self.pl.play_wave_gnu(data_path('02.wav'))
         except Exception as e:
             print(f"Ошибка воспроизведения звука: {e}")
 
@@ -294,9 +295,9 @@ class Event:
                     # Воспроизводим звук в отдельном потоке
                     try:
                         if self.is_win_pl():
-                            self.pl.play_wave('data/01.wav')
+                            self.pl.play_wave(data_path('01.wav'))
                         elif self.is_gnu():
-                            self.pl.play_wave_gnu('data/01.wav')
+                            self.pl.play_wave_gnu(data_path('01.wav'))
                     except Exception as e:
                         print(f"Ошибка воспроизведения звука: {e}")
 

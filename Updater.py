@@ -158,7 +158,7 @@ class UpdateDialog(QProgressDialog):
 if __name__ == '__main__':
     # main()
     app = QApplication(sys.argv)
-    app_icon = QIcon('data/icon.ico')
+    app_icon = QIcon(data_path('icon.ico'))
     app.setWindowIcon(app_icon)
     updater = Updater()
     updater.start()

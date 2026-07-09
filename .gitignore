@@ -22,3 +22,4 @@ deploy.txt
 s21-notify-version.txt
 s21-updater-version.txt
 update_info.json
+data/events.db
